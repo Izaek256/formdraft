@@ -5,4 +5,5 @@
 //! This crate compiles to both native and `wasm32-unknown-unknown`.  It has no
 //! filesystem, network, clock or randomness dependencies.
 
+pub mod geom;
 pub mod units;
