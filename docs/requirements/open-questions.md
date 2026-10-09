@@ -19,7 +19,7 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | OQ-13 | Numeric trigger for the small-waist rule. | SRS 5.4; ALD4-FIT-001 | FR-023 | Pattern maker | Open | |
 | OQ-14 | Default seam allowances: side seams, hem, waist edge. | SRS FR-022; ALD4-SA-001 to 003 | FR-022 | Pattern maker | Open | |
 | OQ-15 | Chart size selection when bust is not supplied. | SRS 5.3; ALD4-INT-009 | FR-042 | Pattern maker | Open | |
-| OQ-16 | Default display unit per quantity class. | SRS 15 item 15 | FR-038 | Lead developer | Open | |
+| OQ-16 | Default display unit per quantity class. | SRS 15 item 15 | FR-038 | Lead developer | Decided | 2026-10-09: Provisional defaults per quantity class: body measurements cm, pattern dimensions mm, allowances and tolerances mm, fabric width cm, fabric length m. The two fabric classes go beyond the SRS proposal. All five marked PROVISIONAL. |
 | OQ-17 | Tolerance between code output and hand drafts. | SRS 15 item 16 | FR-021; NFR-014; AT-13 | Pattern maker | Open | |
 | OQ-18 | SRS 1.0 requirements FR-001 to FR-018 and NFR-001 to NFR-013 were not provided. This register is incomplete without them. | Process gap | Whole register | Lead developer | Open | |
 | OQ-19 | Corner policy for seam allowance joins. The source gives none. | FR-022; ALD4-SA-005 | FR-022 | Lead developer with pattern maker | Open | |
@@ -36,8 +36,9 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | OQ-30 | How production mode and developer mode are selected, and who may enable developer mode (affects UNVERIFIED exports). | FR-020; AT-19 | FR-020; S04; S10 | Lead developer | Open | |
 | OQ-31 | PDF font embedding and non-Latin text for legends. | FR-032; OQ-09 | FR-032 | Lead developer | Open | |
 | OQ-32 | Licence of the application and the dependency licence policy. | Process | AGENTS.md; cargo deny | Lead developer | Open | |
-| OQ-33 | Display precision per unit. | FR-038 | FR-038 | Lead developer | Open | |
+| OQ-33 | Display precision per unit. | FR-038 | FR-038 | Lead developer | Decided | 2026-10-09: Display precision (decimal places): mm 1, cm 1, m 3, in 2 (fraction mode: nearest 1/16), ft 3, yd 3. Inch fraction denominators: 2, 4, 8, 16, 32, 64; default 16. Input conventions: only the six abbreviations mm, cm, m, in, ft, yd, case-insensitive, with or without a space; dot decimal point only; fractions for inches only; no apostrophe or quote symbols in S01. Display rounding: half away from zero, display only, never stored values. |
 | OQ-34 | CI host and release distribution channel for native builds. | Process | S00; S18 | Lead developer | Open | |
+| OQ-35 | Resolution order of unit preferences across scope and quantity class. | FR-038 | FR-038; S01 | Lead developer | Decided | 2026-10-09: Most specific wins: project with quantity class, then global with quantity class, then project default, then global default. |
 
 ## Slices that each question blocks
 
@@ -77,3 +78,4 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | OQ-32 | S00 |
 | OQ-33 | S01 |
 | OQ-34 | S00 |
+| OQ-35 | S01 |
