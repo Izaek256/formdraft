@@ -4,7 +4,7 @@ There is no database and no network API. The contracts that matter are the crate
 
 ## 1. Length representation (ADR-0002, ADR-0007)
 
-- Stored form: an exact integer count of nanometres in an i64 (Proposed). One millimetre is 1,000,000 units. This represents every value the six units can produce, including 1/64 inch (396,875 units) and 1 yard (914,400,000 units).
+- Stored form: an exact integer count of nanometres in an i64. One millimetre is 1,000,000 units. This represents every value the six units can produce, including 1/64 inch (396,875 units) and 1 yard (914,400,000 units).
 - Fractions of an inch convert exactly when the denominator is a power of two up to 64. Other denominators are rejected with a typed error (OQ-33 fixes the allowed set).
 - Computation form: f64 millimetres, created from the stored form at the boundary into geometry. Results return to the stored form only where a value is saved or displayed.
 - Serialised form: a decimal string in millimetres (for example "304.8"), never a JSON number.

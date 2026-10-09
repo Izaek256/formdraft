@@ -1,6 +1,6 @@
 # Test catalog
 
-All 131 planned tests by level. IDs match docs/requirements. A test ID is stable: never reuse an ID for a different test.
+All 134 planned tests by level. IDs match docs/requirements. A test ID is stable: never reuse an ID for a different test.
 
 ## Where each level lives
 
@@ -20,7 +20,7 @@ All 131 planned tests by level. IDs match docs/requirements. A test ID is stable
 | STATIC | Lints, scripts and dependency checks | scripts/ and CI |
 | MANUAL | Done by a person, recorded as evidence | docs/testing/manual-procedures.md |
 
-## UNIT (41)
+## UNIT (43)
 
 | Test | Requirement | Verifies | Slice | Release |
 |---|---|---|---|---|
@@ -51,6 +51,8 @@ All 131 planned tests by level. IDs match docs/requirements. A test ID is stable
 | T-FR-039-02 | FR-039 | Semantic tree contains labelled fields and status | S14 | R1 |
 | T-FR-038-01 | FR-038 | Exact conversion for every unit pair | S01 | R1 |
 | T-FR-038-03 | FR-038 | Suffix override and fractional inch parsing | S01 | R1 |
+| T-FR-038-08 | FR-038 | Preference resolution order across scope and quantity class | S01 | R1 |
+| T-FR-038-09 | FR-038 | Display rounding is half away from zero | S01 | R1 |
 | T-FR-025-01 | FR-025 | Undo restores exact geometry | S22 | R2 |
 | T-FR-025-02 | FR-025 | Override isolation from formula geometry | S22 | R2 |
 | T-FR-027-02 | FR-027 | Uniform scaling rejected | S20 | R2 |
@@ -66,7 +68,7 @@ All 131 planned tests by level. IDs match docs/requirements. A test ID is stable
 | T-NFR-016-02 | NFR-016 | Self-intersection check | S10 | R1 |
 | T-NFR-020-02 | NFR-020 | Unknown version rejected | S11 | R1 |
 
-## PROP (9)
+## PROP (10)
 
 | Test | Requirement | Verifies | Slice | Release |
 |---|---|---|---|---|
@@ -76,6 +78,7 @@ All 131 planned tests by level. IDs match docs/requirements. A test ID is stable
 | T-FR-023-04 | FR-023 | Recompute is stable and repeatable | S06 | R1 |
 | T-FR-026-02 | FR-026 | Tessellation error within tolerance at low and high zoom | S02 | R1 |
 | T-FR-038-02 | FR-038 | Parse then format then parse is stable for every unit | S01 | R1 |
+| T-FR-038-07 | FR-038 | Arbitrary text never panics the parser | S01 | R1 |
 | T-FR-031-01 | FR-031 | No overlap and within width for generated cases | S25 | R2 |
 | T-NFR-014-02 | NFR-014 | Repeat runs give identical checksums | S06 | R1 |
 | T-NFR-020-03 | NFR-020 | Fuzzed loader never panics | S11 | R1 |
