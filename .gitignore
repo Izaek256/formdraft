@@ -1,0 +1,18 @@
+# Rust build artifacts
+/target/
+**/target/
+
+# WASM/web build output
+/dist/
+**/dist/
+/.trunk/
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
