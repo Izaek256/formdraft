@@ -19,7 +19,7 @@ If two sources disagree, stop and report the conflict. Do not pick one. A Propos
 ## How to work
 
 1. Work on exactly one slice at a time, from a task brief (docs/plan/task-brief-template.md). Create your branch first (see Branching and merging).
-2. Check that the slice's dependencies are done and that none of its blocking open questions is Open. If one is, stop and ask.
+2. Check that the slice's dependencies are done and that none of its blocking open questions is Open. If one is, stop and ask. **A dependency is done only when its pull request is merged into develop. If it is not merged, stop and ask. Never branch from another feature branch.**
 3. Read the slice's requirements and acceptance criteria. Restate the criteria you will prove.
 4. Write the failing tests first, with the test IDs from docs/testing/test-catalog.md.
 5. Implement the smallest change that passes them.
