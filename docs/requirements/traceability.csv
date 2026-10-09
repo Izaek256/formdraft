@@ -36,7 +36,7 @@ NFR-018,Offline operation,R1,Must,SRS 10 NFR-018,S17,BR-15,AC-NFR-018-1,,T-NFR-0
 NFR-019,WASM size,R1,Must,SRS 10 NFR-019,S16,,AC-NFR-019-1,,T-NFR-019-01,OQ-08,Not started
 NFR-020,Schema version checking,R1,Must,SRS 10 NFR-020,S11,BR-16,AC-NFR-020-1,,T-NFR-020-01;T-NFR-020-02;T-NFR-020-03,,Not started
 NFR-021,Crash-safe saves,R1,Must,SRS 10 NFR-021,S11,,AC-NFR-021-1,,T-NFR-021-01;T-NFR-021-02,,Not started
-NFR-022,Lint policy,R1,Must,SRS 10 NFR-022,S00,,AC-NFR-022-1,,T-NFR-022-01;T-NFR-022-02,,Not started
+NFR-022,Lint policy,R1,Must,SRS 10 NFR-022,S00,,AC-NFR-022-1,,T-NFR-022-01;T-NFR-022-02,,Implemented
 NFR-023,Platform matrix,R1,Must,SRS 10 NFR-023,S16,,AC-NFR-023-1,,T-NFR-023-01;T-NFR-023-02,OQ-24,Not started
 NFR-024,No undisclosed transmission,R1,Must,SRS 10 NFR-024,S17,BR-15,AC-NFR-024-1,,T-NFR-024-01;T-NFR-024-02,,Not started
 NFR-025,Accessible workflow,R1,Must,SRS 10 NFR-025,S14,,AC-NFR-025-1,,T-NFR-025-01;T-NFR-025-02,,Not started
