@@ -5,7 +5,7 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | ID | Question | Source | Affects | Owner | Status | Decision and date |
 |---|---|---|---|---|---|---|
 | OQ-01 | Permission to use and cite the source book, and the licence position for the rulebook. | SRS 15 item 1 | FR-020; release | Lead developer | Open | |
-| OQ-02 | Plausibility thresholds and cross-field rules for the four measurements and bust. | SRS 15 item 2; Thresholds sheet | FR-019; S03 | Pattern maker | Open | |
+| OQ-02 | Plausibility thresholds and cross-field rules for the four measurements and bust. | SRS 15 item 2; Thresholds sheet | FR-019; S03 | Pattern maker | Open | Stays Open on purpose; S03 runs without it, using artificial limits in tests. |
 | OQ-03 | Target population and size range. | SRS 15 item 3 | FR-042; FR-027 | Lead developer | Open | |
 | OQ-04 | Offline storage model, customer consent record, and deletion semantics. | SRS 15 item 4 | FR-037 | Lead developer | Open | |
 | OQ-05 | Reference printer and the numeric print tolerance. | SRS 15 item 5 | FR-032; NFR-015 | Lead developer | Open | |
@@ -25,7 +25,7 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | OQ-19 | Corner policy for seam allowance joins. The source gives none. | FR-022; ALD4-SA-005 | FR-022 | Lead developer with pattern maker | Open | |
 | OQ-20 | Definition of a severe self-intersection and of excessive offset curvature. | FR-022; FR-036 | FR-022; FR-036; AT-09 | Lead developer | Open | |
 | OQ-21 | Project file format: JSON or a documented binary format, single file or directory. | FR-035; ADR-0010 | FR-035; S11 | Lead developer | Open | |
-| OQ-22 | What anonymisable means for a profile. | FR-019 | FR-019 | Lead developer | Open | |
+| OQ-22 | What anonymisable means for a profile. | FR-019 | FR-019 | Lead developer | Open | Stays Open on purpose; S03 runs without it, anonymisation is not in scope for S03. |
 | OQ-23 | Reference hardware for NFR-017 and the print baseline. | SRS 10 | NFR-017 | Lead developer | Open | |
 | OQ-24 | Minimum browser and operating system matrix. | NFR-023 | NFR-023; S16 | Lead developer | Open | |
 | OQ-25 | What atomic means for a browser download and how the last valid version is protected. | FR-035 | FR-035 | Lead developer | Open | |

@@ -1,6 +1,6 @@
 # ADR-0009: Rulebook as declarative data plus Rust construction code
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-10-09
 - Source: FR-040, NFR-026, NFR-027
 - Requirements: FR-020; FR-040; NFR-026; NFR-027; BR-21
