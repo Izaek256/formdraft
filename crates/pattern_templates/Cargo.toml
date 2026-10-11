@@ -6,3 +6,8 @@ license.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+pattern_core = { path = "../pattern_core" }

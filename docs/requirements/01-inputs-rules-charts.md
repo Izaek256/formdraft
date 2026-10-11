@@ -31,6 +31,9 @@ Status values in the traceability file: Not started, In progress, Implemented, V
 - T-FR-019-01 [UNIT] Validation per field and per cross-field rule
 - T-FR-019-02 [UNIT] Tag rules: chart-derived accepted only on waist-to-hip
 - T-FR-019-03 [UNIT] AT-03: each of the four mandatory fields removed in turn names that field
+- T-FR-019-06 [UNIT] Unset limits warn LimitsNotConfigured and set limits_complete false, only for unset fields
+- T-FR-019-07 [UNIT] Zero and negative values rejected even when limits are unset
+- T-FR-019-08 [UNIT] Debug of Profile and ProfileDraft never reveals measurement values or the label
 - T-FR-019-04 [PROP] Any valid profile survives serialise then deserialise unchanged
 - T-FR-019-05 [INTEG] Profile persisted and reloaded through the project file (needs S11)
 

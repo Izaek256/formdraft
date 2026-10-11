@@ -1,0 +1,75 @@
+# Thresholds for the Aldrich MPC 4th edition tailored skirt block.
+# All values are UNSET by default.  They will be populated when the G0 rule
+# register workbook is completed (DOM-01).
+#
+# Each entry has:
+#   hard_min      = hard minimum (error if below)
+#   hard_max      = hard maximum (error if above)
+#   warn_below    = warning threshold (warning if below)
+#   warn_above    = warning threshold (warning if above)
+#   unit          = unit for the values (must be a valid unit suffix)
+#
+# Rule IDs:
+#   ALD4-THR-001  waist
+#   ALD4-THR-002  hips
+#   ALD4-THR-003  waist_to_hip
+#   ALD4-THR-004  skirt_length
+#   ALD4-THR-005  bust
+#   ALD4-THR-006  hips_vs_waist (cross-field: hips - waist)
+#
+# Values are strings parsed by the unit service (e.g., "62 cm").
+# When UNSET, the limit is not enforced and a LimitsNotConfigured warning is emitted.
+#
+# DO NOT INVENT NUMBERS HERE.  They will be filled from the verified G0 workbook.
+
+[waist]
+status = "UNSET"
+hard_min = ""
+hard_max = ""
+warn_below = ""
+warn_above = ""
+unit = "cm"
+rule_id = "ALD4-THR-001"
+
+[hips]
+status = "UNSET"
+hard_min = ""
+hard_max = ""
+warn_below = ""
+warn_above = ""
+unit = "cm"
+rule_id = "ALD4-THR-002"
+
+[waist_to_hip]
+status = "UNSET"
+hard_min = ""
+hard_max = ""
+warn_below = ""
+warn_above = ""
+unit = "cm"
+rule_id = "ALD4-THR-003"
+
+[skirt_length]
+status = "UNSET"
+hard_min = ""
+hard_max = ""
+warn_below = ""
+warn_above = ""
+unit = "cm"
+rule_id = "ALD4-THR-004"
+
+[bust]
+status = "UNSET"
+hard_min = ""
+hard_max = ""
+warn_below = ""
+warn_above = ""
+unit = "cm"
+rule_id = "ALD4-THR-005"
+
+[hips_vs_waist]
+status = "UNSET"
+min_diff = ""
+max_diff = ""
+unit = "cm"
+rule_id = "ALD4-THR-006"
