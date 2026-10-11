@@ -6,4 +6,5 @@
 //! filesystem, network, clock or randomness dependencies.
 
 pub mod geom;
+pub mod measure;
 pub mod units;

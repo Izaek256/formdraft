@@ -27,6 +27,9 @@ All 134 planned tests by level. IDs match docs/requirements. A test ID is stable
 | T-FR-019-01 | FR-019 | Validation per field and per cross-field rule | S03 | R1 |
 | T-FR-019-02 | FR-019 | Tag rules: chart-derived accepted only on waist-to-hip | S03 | R1 |
 | T-FR-019-03 | FR-019 | AT-03: each of the four mandatory fields removed in turn names that field | S03 | R1 |
+| T-FR-019-06 | FR-019 | Unset limits warn LimitsNotConfigured and set limits_complete false, only for the fields that are unset | S03 | R1 |
+| T-FR-019-07 | FR-019 | Zero and negative values rejected even when limits are unset | S03 | R1 |
+| T-FR-019-08 | FR-019 | Debug of Profile and ProfileDraft never reveals measurement values or the label | S03 | R1 |
 | T-FR-020-01 | FR-020 | Provenance chain returned for sampled construction points | S04 | R1 |
 | T-FR-020-05 | FR-020 | Mixed-edition rulebook rejected | S04 | R1 |
 | T-FR-021-04 | FR-021 | Structural invariants: closed paths, hipline below waistline, hem below hipline, dart counts | S06 | R1 |
