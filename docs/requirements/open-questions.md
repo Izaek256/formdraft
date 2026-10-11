@@ -39,6 +39,11 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | OQ-33 | Display precision per unit. | FR-038 | FR-038 | Lead developer | Decided | 2026-10-09: Display precision (decimal places): mm 1, cm 1, m 3, in 2 (fraction mode: nearest 1/16), ft 3, yd 3. Inch fraction denominators: 2, 4, 8, 16, 32, 64; default 16. Input conventions: only the six abbreviations mm, cm, m, in, ft, yd, case-insensitive, with or without a space; dot decimal point only; fractions for inches only; no apostrophe or quote symbols in S01. Display rounding: half away from zero, display only, never stored values. |
 | OQ-34 | CI host and release distribution channel for native builds. | Process | S00; S18 | Lead developer | Open | |
 | OQ-35 | Resolution order of unit preferences across scope and quantity class. | FR-038 | FR-038; S01 | Lead developer | Decided | 2026-10-09: Most specific wins: project with quantity class, then global with quantity class, then project default, then global default. |
+| OQ-36 | Whether panels are movable or dockable in R1. | docs/design/ui-spec.md 3, 7, 8 | FR-044; SK-01; S14 | Lead developer | Decided | 2026-10-11: Fixed panels for R1. Docking is deferred to spike SP-04, which tests a candidate crate against the pinned egui version first (ADR-0014). |
+| OQ-37 | Whether actual size on screen can be exact. | docs/design/ui-spec.md 4, 8 | FR-044; FR-039 | Lead developer | Decided | 2026-10-11: Approximate only, labelled approximate, assuming 96 pixels per inch. Never presented as exact; the reliable check is the 100 mm calibration square in the printed PDF (ADR-0014). |
+| OQ-38 | Contrast targets and the default theme. | docs/design/ui-spec.md 5 | FR-044; FR-039 | Lead developer | Decided | 2026-10-11: Text 4.5 to 1, controls and focus 3 to 1, checked by a unit test on each palette. Dark theme is the default (ADR-0014). |
+| OQ-39 | The keyboard shortcut scheme. | docs/design/ui-spec.md 6 | FR-044; FR-039; S14f | Lead developer | Decided | 2026-10-11: The scheme in docs/design/ui-spec.md section 6. Only shortcuts for features that exist are bound. Tab is never a shortcut (ADR-0014). |
+| OQ-40 | Fonts and icon licences. | docs/design/ui-spec.md 6, 7 | FR-044; S14f | Lead developer | Decided | 2026-10-11: egui default fonts for R1. Icons are drawn in code with egui's painter from the project's own code; no third-party icon assets (ADR-0014). |
 
 ## Slices that each question blocks
 
@@ -79,3 +84,8 @@ These are unresolved. The agent must not answer them by guessing. When work reac
 | OQ-33 | S01 |
 | OQ-34 | S00 |
 | OQ-35 | S01 |
+| OQ-36 | SK-01, SP-04 |
+| OQ-37 | SK-01 |
+| OQ-38 | SK-01 |
+| OQ-39 | SK-01, S14f |
+| OQ-40 | SK-01 |

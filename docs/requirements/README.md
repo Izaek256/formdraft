@@ -1,6 +1,6 @@
 # Requirements and traceability
 
-This folder splits SRS 1.2 into 44 uniquely identified requirements (36 for R1, 8 for R2) with 155 acceptance criteria and 131 planned tests.
+This folder splits SRS 1.2 into 45 uniquely identified requirements (37 for R1, 8 for R2) with 162 acceptance criteria and 136 planned tests.
 
 ## Files
 
@@ -14,7 +14,7 @@ This folder splits SRS 1.2 into 44 uniquely identified requirements (36 for R1, 
 | 06-r2-editing-grading-fabric.md | R2: editing, grading, fabric |
 | 07-render-and-nonfunctional.md | Render and non-functional |
 | business-rules.md | Cross-cutting business rules BR-01 to BR-22 |
-| open-questions.md | Unresolved ambiguities OQ-01 to OQ-34 |
+| open-questions.md | Unresolved ambiguities OQ-01 to OQ-40 |
 | acceptance-tests.md | AT-01 to AT-21 mapped to requirements and slices |
 | traceability.csv | One row per requirement: slice, tests, rules, open questions, status |
 

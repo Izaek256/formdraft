@@ -17,6 +17,7 @@ Short records of decisions. Status Accepted means it comes from the SRS. Status 
 |ADR-0011|[Export strategy](ADR-0011-export-strategy.md)|Accepted pending SP-01|FR-032, FR-033, FR-034, NFR-019|
 |ADR-0012|[Headless command-line harness](ADR-0012-headless-command-line-harness.md)|Accepted|NFR-014, NFR-018|
 |ADR-0013|[Golden test policy](ADR-0013-golden-test-policy.md)|Proposed|FR-021, NFR-014|
+|ADR-0014|[UI approach: egui workspace with fixed panels and design tokens](ADR-0014-ui-approach-egui-workspace-fixed-panels.md)|Accepted|FR-044, FR-039; ui-spec|
 
 ## Template
 

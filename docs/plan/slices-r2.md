@@ -190,3 +190,30 @@ cargo test -p pattern_material
 ```
 Read the Grade_tables sheet
 ```
+
+## SP-04 Spike: dockable panels with the pinned egui version
+
+- Release: R2  Kind: spike
+- Depends on: SK-01
+- Requirements: FR-039
+- ADRs: ADR-0014
+- Blocked by open questions or domain work: OQ-36
+
+**Delivers.** A finding on whether a docking crate works with the pinned egui, and a recommendation on movable panels.
+
+**Expected files or modules**
+
+- spikes/sp-04-docking/
+- docs/architecture/adr/ADR-0014-ui-approach.md (updated)
+
+**Acceptance criteria**
+
+- A candidate docking crate is built against the pinned egui version, or the mismatch is recorded.
+- Tabs, splits and drag docking are tried, with keyboard operation and accessibility noted.
+- The ADR records the decision and the cost.
+
+**Verification commands**
+
+```
+cargo run -p sp04-docking
+```

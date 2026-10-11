@@ -10,6 +10,7 @@ flowchart TD
   S01["S01 Unit service"]
   S02["S02 Geometry primitives"]
   S03["S03 Measurement profile and validation"]
+  SK01["SK-01 Workspace skeleton (professional layout, placeholder shape)"]
   S04["S04 Rule records and rulebook loader"]
   S05["S05 Size charts and chart lookup"]
   S06["S06 Tailored skirt block with darts"]
@@ -20,7 +21,11 @@ flowchart TD
   S11["S11 Project document"]
   S12["S12 SVG export"]
   S13["S13 Tiled PDF export and toile statement"]
-  S14["S14 Application shell and UI"]
+  S14["S14 Application UI (container: SK-01 plus S14c to S14f)"]
+  S14c["S14c Properties, warnings and provenance panels"]
+  S14d["S14d Pieces panel and layer visibility"]
+  S14e["S14e File and export flows"]
+  S14f["S14f Keyboard and accessibility pass"]
   S15["S15 GPU render layer"]
   S16["S16 Web build"]
   S17["S17 Offline and privacy harness"]
@@ -32,6 +37,7 @@ flowchart TD
   S24["S24 Material library and preview"]
   S25["S25 Fabric layout and consumption"]
   DOM02(["DOM-02 Domain baseline for R2 (grading tables)"])
+  SP04{{"SP-04 Spike: dockable panels with the pinned egui version"}}
   S00 --> SP01
   S02 --> SP02
   S14 --> SP03
@@ -39,6 +45,9 @@ flowchart TD
   S00 --> S02
   S01 --> S02
   S01 --> S03
+  S01 --> SK01
+  S02 --> SK01
+  S03 --> SK01
   S00 --> S04
   S01 --> S04
   S01 --> S05
@@ -67,13 +76,27 @@ flowchart TD
   S09 --> S13
   S10 --> S13
   S12 --> S13
-  S01 --> S14
-  S03 --> S14
-  S06 --> S14
-  S08 --> S14
-  S09 --> S14
-  S10 --> S14
-  S11 --> S14
+  SK01 --> S14
+  S14c --> S14
+  S14d --> S14
+  S14e --> S14
+  S14f --> S14
+  S03 --> S14c
+  S04 --> S14c
+  S10 --> S14c
+  SK01 --> S14c
+  S06 --> S14d
+  S08 --> S14d
+  S09 --> S14d
+  SK01 --> S14d
+  S11 --> S14e
+  S12 --> S14e
+  S13 --> S14e
+  SK01 --> S14e
+  SK01 --> S14f
+  S14c --> S14f
+  S14d --> S14f
+  S14e --> S14f
   S14 --> S15
   SP03 --> S15
   S14 --> S16
@@ -96,6 +119,7 @@ flowchart TD
   S11 --> S24
   S24 --> S25
   DOM01 --> DOM02
+  SK01 --> SP04
 ```
 
 Hexagons are spikes. Rounded boxes are domain work done by people, not code.
@@ -111,29 +135,35 @@ Hexagons are spikes. Rounded boxes are domain work done by people, not code.
 | 5 | S02 | R1 | code | Geometry primitives |
 | 6 | SP-02 | R1 | spike | Spike: polygon and curve offset approach |
 | 7 | S03 | R1 | code | Measurement profile and validation |
-| 8 | S04 | R1 | code | Rule records and rulebook loader |
-| 9 | S05 | R1 | code | Size charts and chart lookup |
-| 10 | S06 | R1 | code | Tailored skirt block with darts |
-| 11 | S08 | R1 | code | Seam allowance and offset |
-| 12 | S09 | R1 | code | Construction marks |
+| 8 | SK-01 | R1 | code | Workspace skeleton (professional layout, placeholder shape) |
+| 9 | S04 | R1 | code | Rule records and rulebook loader |
+| 10 | S05 | R1 | code | Size charts and chart lookup |
+| 11 | S06 | R1 | code | Tailored skirt block with darts |
+| 12 | S08 | R1 | code | Seam allowance and offset |
 | 13 | S10 | R1 | code | Audit, warnings and export gate |
-| 14 | S11 | R1 | code | Project document |
-| 15 | S14 | R1 | code | Application shell and UI |
-| 16 | SP-03 | R1 | spike | Spike: egui_wgpu paint callback and texture limits |
-| 17 | S07 | R1 | code | Straight skirt adaptation |
+| 14 | S14c | R1 | code | Properties, warnings and provenance panels |
+| 15 | S09 | R1 | code | Construction marks |
+| 16 | S14d | R1 | code | Pieces panel and layer visibility |
+| 17 | S11 | R1 | code | Project document |
 | 18 | S12 | R1 | code | SVG export |
 | 19 | S13 | R1 | code | Tiled PDF export and toile statement |
-| 20 | S15 | R1 | code | GPU render layer |
-| 21 | S16 | R1 | code | Web build |
-| 22 | S17 | R1 | code | Offline and privacy harness |
-| 23 | S18 | R1 | code | R1 acceptance and evidence pack |
-| 24 | DOM-02 | R2 | domain | Domain baseline for R2 (grading tables) |
-| 25 | S20 | R2 | code | Size grading |
-| 26 | S21 | R2 | code | DXF export |
-| 27 | S22 | R2 | code | Manual drafting tools and overrides |
-| 28 | S23 | R2 | code | Pattern comparison |
-| 29 | S24 | R2 | code | Material library and preview |
-| 30 | S25 | R2 | code | Fabric layout and consumption |
+| 20 | S14e | R1 | code | File and export flows |
+| 21 | S14f | R1 | code | Keyboard and accessibility pass |
+| 22 | S14 | R1 | code | Application UI (container: SK-01 plus S14c to S14f) |
+| 23 | SP-03 | R1 | spike | Spike: egui_wgpu paint callback and texture limits |
+| 24 | S07 | R1 | code | Straight skirt adaptation |
+| 25 | S15 | R1 | code | GPU render layer |
+| 26 | S16 | R1 | code | Web build |
+| 27 | S17 | R1 | code | Offline and privacy harness |
+| 28 | S18 | R1 | code | R1 acceptance and evidence pack |
+| 29 | DOM-02 | R2 | domain | Domain baseline for R2 (grading tables) |
+| 30 | S20 | R2 | code | Size grading |
+| 31 | S21 | R2 | code | DXF export |
+| 32 | S22 | R2 | code | Manual drafting tools and overrides |
+| 33 | S23 | R2 | code | Pattern comparison |
+| 34 | S24 | R2 | code | Material library and preview |
+| 35 | S25 | R2 | code | Fabric layout and consumption |
+| 36 | SP-04 | R2 | spike | Spike: dockable panels with the pinned egui version |
 
 ## Parallel tracks
 

@@ -78,3 +78,32 @@ Status values in the traceability file: Not started, In progress, Implemented, V
 - T-FR-039-01 [E2E] Keyboard-only run: enter measurements, generate, export
 - T-FR-039-02 [UNIT] Semantic tree contains labelled fields and status
 - T-FR-039-03 [MANUAL] MT-02 screen reader and keyboard review
+
+## FR-044 Professional workspace
+
+- Release and priority: R1 / Should
+- SRS reference: SRS 7 FR-044 (new 1.2, amendment 2026-10-11)
+- Implementing slice: SK-01 (see ../plan/); refined by S14c to S14f
+- Business rules: none specific
+- Open questions: OQ-36, OQ-37, OQ-38, OQ-39, OQ-40
+- Acceptance tests: AT-22
+
+**Statement.** The application provides a workspace with a menu bar, tool strip, control bar, canvas with rulers, properties panel, pieces panel, warnings panel, provenance panel and status bar. Rulers, grid, cursor read-out and dimensions use the display unit through the unit service. Navigation includes zoom to cursor, hand and keyboard pan, fit and an approximate actual size. Three themes are provided. All commands have keyboard routes. Stitch and cut lines are distinguishable without colour. The interface never computes geometry.
+
+**Acceptance criteria**
+
+- AC-FR-044-1: The regions in docs/design/ui-spec.md exist: menu bar, tool strip, control bar, canvas with rulers, properties, pieces and warnings panels, status bar.
+- AC-FR-044-2: Three themes switch live and each palette meets the contrast targets (text 4.5 to 1, controls and focus 3 to 1), checked by a unit test.
+- AC-FR-044-3: No colour, size or icon is hard-coded in a view. A static check fails on a planted violation and passes on the clean tree.
+- AC-FR-044-4: Rulers, grid, cursor read-out and dimension text use the unit service in the display unit. Switching a display unit changes the text and never the drawn size (INV-02).
+- AC-FR-044-5: Zoom to cursor, wheel, Space-drag, hand tool, fit, approximate actual size and keyboard zoom and pan work (FR-039).
+- AC-FR-044-6: Stitch and cut role styles differ by dash pattern, not colour alone.
+- AC-FR-044-7: A reviewer can complete WF-01 using only the workspace, and every documented command has exactly one keyboard route. Tab is never a shortcut.
+
+**Planned tests**
+
+- T-FR-044-01 [E2E] AT-22: reviewer completes WF-01 using only the workspace
+- T-FR-044-02 [INTEG] Rulers and read-outs change units without changing geometry
+- T-FR-044-03 [UNIT] Each palette meets the contrast targets
+- T-FR-044-04 [STATIC] No hard-coded colour or direct length format in a view
+- T-FR-044-05 [E2E] Keyboard route per command; Tab is focus order, never a shortcut

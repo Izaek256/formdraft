@@ -30,6 +30,8 @@ Revision 1.2 · Draft for academic and client validation · 09 October 2026
 
 Amendment of 09 October 2026 (revision number unchanged): (a) unit support is made global. FR-038 becomes Must for R1 and supports mm, cm, m, in, ft and yd through one unit service, with new NFR-028, AT-20, AT-21 and a UnitPreference entity. (b) Appendix A defines the G0 rule register workbook and the composition of the ten reference skirts. (c) G0 requires every rule to be checked against the book's figures as well as its text. (d) Approval items 15 (display units) and 16 (code-versus-hand tolerance) are added. (e) A unit-confusion risk is added.
 
+Amendment of 11 October 2026 (revision number unchanged): (a) WP-01 professional workspace is added as FR-044, with acceptance test AT-22, and ADR-0014 records the UI approach. (b) FR-044 is built by slice SK-01 and refined by S14c to S14f.
+
 Requirements revised in 1.2 are marked (revised 1.2). New requirements are marked (new 1.2). All other requirements are unchanged from 1.1.
 
 ## 1. Revision strategy and evidence
@@ -365,6 +367,14 @@ Requirement: Every export page, and the on-screen summary, states that the outpu
 Acceptance: AT-17.
 
 Priority: Must | Target: R1
+
+### FR-044: Professional workspace (new 1.2, amendment of 11 October 2026)
+
+Requirement: The application provides a workspace with a menu bar, tool strip, control bar, canvas with rulers, properties panel, pieces panel, warnings panel, provenance panel and status bar. Rulers, grid, cursor read-out and dimensions use the display unit through the unit service. Navigation includes zoom to cursor, hand and keyboard pan, fit and an approximate actual size. Three themes are provided. All commands have keyboard routes. Stitch and cut lines are distinguishable without colour. The interface never computes geometry.
+
+Acceptance: AT-22. A reviewer can complete WF-01 using only the workspace. Rulers and read-outs change units without changing geometry. Each theme meets the agreed contrast targets. No view contains a hard-coded colour or a direct length format.
+
+Priority: Should | Target: R1
 
 ## 8. Render and texture specifications
 
