@@ -4,12 +4,14 @@
 //! composes the regions and routes events between them.
 
 use egui::Ui;
+use pattern_core::units::{format_length, FormatOptions, Length, Unit};
 
+use crate::canvas::Canvas;
 use crate::shell::menu::{self, MenuEvent, MenuState};
 use crate::shell::shortcuts::{self, Action, Scope};
 use crate::shell::statusbar::{self, StatusBarState};
 use crate::shell::{controlbar, toolstrip, PanelsModel, Tool};
-use crate::theme::{self, ThemeKind};
+use crate::theme::{self, ThemeKind, Tokens};
 
 /// The method and edition notice shown in the status bar and the about window.
 pub const METHOD_NOTICE: &str =
@@ -32,6 +34,8 @@ pub struct Workspace {
     pub show_shortcuts: bool,
     /// Whether the about window is open.
     pub show_about: bool,
+    /// The canvas.
+    pub canvas: Canvas,
 }
 
 impl Default for Workspace {
@@ -44,6 +48,7 @@ impl Default for Workspace {
             show_grid: true,
             show_shortcuts: false,
             show_about: false,
+            canvas: Canvas::new([800.0, 600.0]),
         }
     }
 }
@@ -66,9 +71,26 @@ impl Workspace {
             | Action::PanLeft
             | Action::PanRight
             | Action::PanUp
-            | Action::PanDown => {}
+            | Action::PanDown => self.canvas.handle_action(action),
         }
     }
+}
+
+/// Format a millimetre value through the unit service (ADR-0007).
+fn format_mm(unit: Unit, mm: f64) -> String {
+    match Length::from_mm(mm) {
+        Ok(length) => format_length(length, &FormatOptions::default_for(unit)),
+        Err(_) => String::from("--"),
+    }
+}
+
+/// Format a millimetre size as `width x height` in the display unit.
+fn format_size(unit: Unit, width_mm: f64, height_mm: f64) -> String {
+    format!(
+        "{} x {}",
+        format_mm(unit, width_mm),
+        format_mm(unit, height_mm)
+    )
 }
 
 /// The eframe application.
@@ -76,6 +98,7 @@ impl Workspace {
 pub struct WorkspaceApp {
     workspace: Workspace,
     canvas_focused: bool,
+    cursor_mm: Option<[f64; 2]>,
 }
 
 impl WorkspaceApp {
@@ -89,6 +112,8 @@ impl eframe::App for WorkspaceApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
         theme::apply(ui.ctx(), self.workspace.theme);
         let tokens = theme::tokens(self.workspace.theme);
+        self.workspace.canvas.show_rulers = self.workspace.show_rulers;
+        self.workspace.canvas.show_grid = self.workspace.show_grid;
 
         let menu_state = MenuState {
             theme: self.workspace.theme,
@@ -100,22 +125,17 @@ impl eframe::App for WorkspaceApp {
             menu_events = menu::draw(ui, &menu_state);
         });
 
+        let zoom_percent = self.workspace.canvas.viewport.zoom_percent();
         let bar_state = controlbar::ControlBarState {
-            zoom_percent: 100.0,
-            actual_size: false,
+            zoom_percent: zoom_percent as f32,
+            actual_size: (zoom_percent - 100.0).abs() < 0.5,
         };
         let mut bar_events = Vec::new();
         egui::Panel::top("control_bar").show(ui, |ui| {
             bar_events = controlbar::draw(ui, &bar_state, &tokens);
         });
 
-        let status_state = StatusBarState {
-            zoom: "100%".to_owned(),
-            cursor: "-".to_owned(),
-            selection: "-".to_owned(),
-            method: METHOD_NOTICE.to_owned(),
-            limits_notice: true,
-        };
+        let status_state = self.status_state(zoom_percent);
         egui::Panel::bottom("status_bar")
             .exact_size(tokens.sizes.status_bar_height)
             .show(ui, |ui| {
@@ -129,7 +149,7 @@ impl eframe::App for WorkspaceApp {
             });
 
         if self.workspace.panels.any_visible() {
-            let panels = &self.workspace.panels;
+            let panels = self.workspace.panels;
             egui::Panel::right("panel_column")
                 .exact_size(tokens.sizes.panel_width)
                 .show(ui, |ui| {
@@ -157,11 +177,12 @@ impl eframe::App for WorkspaceApp {
                 });
         }
 
-        egui::CentralPanel::default().show(ui, |ui| {
-            ui.centered_and_justified(|ui| {
-                ui.label("Canvas (Stage B)");
-            });
-        });
+        let tool = self.workspace.tool;
+        let response = egui::CentralPanel::default()
+            .show(ui, |ui| self.workspace.canvas.show(ui, &tokens, tool));
+        let inner = response.inner;
+        self.canvas_focused = inner.focused;
+        self.cursor_mm = inner.cursor_world_mm;
 
         for event in menu_events {
             match event {
@@ -173,9 +194,14 @@ impl eframe::App for WorkspaceApp {
         }
         for event in bar_events {
             use controlbar::ControlBarEvent;
-            match event {
-                ControlBarEvent::ZoomIn | ControlBarEvent::ZoomOut => {}
-                ControlBarEvent::Fit | ControlBarEvent::ActualSize => {}
+            let action = match event {
+                ControlBarEvent::ZoomIn => Some(Action::ZoomIn),
+                ControlBarEvent::ZoomOut => Some(Action::ZoomOut),
+                ControlBarEvent::Fit => Some(Action::FitToWindow),
+                ControlBarEvent::ActualSize => Some(Action::ActualSize),
+            };
+            if let Some(action) = action {
+                self.workspace.apply_action(action);
             }
         }
 
@@ -196,6 +222,28 @@ impl eframe::App for WorkspaceApp {
 }
 
 impl WorkspaceApp {
+    fn status_state(&self, zoom_percent: f64) -> StatusBarState {
+        let unit = self.workspace.canvas.display_unit;
+        let cursor = match self.cursor_mm {
+            Some([x, y]) => format!("{} , {}", format_mm(unit, x), format_mm(unit, y)),
+            None => String::from("-"),
+        };
+        let selection = match &self.workspace.canvas.selection {
+            Some(selection) => {
+                let size = selection.bounds.size_mm();
+                format_size(unit, size[0], size[1])
+            }
+            None => String::from("-"),
+        };
+        StatusBarState {
+            zoom: format!("{zoom_percent:.0}%"),
+            cursor,
+            selection,
+            method: METHOD_NOTICE.to_owned(),
+            limits_notice: true,
+        }
+    }
+
     fn handle_shortcuts(&mut self, ui: &mut Ui) {
         let typing = ui.ctx().egui_wants_keyboard_input();
         for shortcut in shortcuts::SHORTCUTS {
@@ -212,7 +260,7 @@ impl WorkspaceApp {
     }
 }
 
-fn shortcut_list(ui: &mut Ui, tokens: &crate::theme::Tokens) {
+fn shortcut_list(ui: &mut Ui, tokens: &Tokens) {
     for (description, action) in shortcuts::documented() {
         ui.label(
             egui::RichText::new(format!(
@@ -224,7 +272,7 @@ fn shortcut_list(ui: &mut Ui, tokens: &crate::theme::Tokens) {
     }
 }
 
-fn about_text(ui: &mut Ui, tokens: &crate::theme::Tokens) {
+fn about_text(ui: &mut Ui, tokens: &Tokens) {
     ui.label(egui::RichText::new("formdraft").size(tokens.sizes.font_heading));
     ui.label(METHOD_NOTICE);
     ui.label(

@@ -82,6 +82,14 @@ pub struct Sizes {
     pub corner_radius: u8,
     /// Icon square size in the tool strip.
     pub icon_size: f32,
+    /// Length of a dash in a dashed stroke.
+    pub dash_length: f32,
+    /// Gap between dashes in a dashed stroke.
+    pub dash_gap: f32,
+    /// Length of a ruler tick mark.
+    pub ruler_tick_len: f32,
+    /// Padding between a ruler tick and its label.
+    pub ruler_label_pad: f32,
 }
 
 /// Shared sizes for every palette.
@@ -102,6 +110,10 @@ pub const SIZES: Sizes = Sizes {
     font_heading: 16.0,
     corner_radius: 3,
     icon_size: 20.0,
+    dash_length: 6.0,
+    dash_gap: 4.0,
+    ruler_tick_len: 6.0,
+    ruler_label_pad: 2.0,
 };
 
 /// A complete set of tokens for one theme.

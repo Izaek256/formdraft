@@ -6,6 +6,7 @@
 //! and rule data from `pattern_templates` (ADR-0005, ADR-0007).
 
 pub mod app;
+pub mod canvas;
 pub mod shell;
 pub mod theme;
 
