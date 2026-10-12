@@ -172,7 +172,7 @@ scripts/check-layering.sh
 - Depends on: S00
 - Requirements: FR-038, NFR-028
 - ADRs: ADR-0002, ADR-0007
-- Blocked by open questions or domain work: OQ-16, OQ-33
+- Blocked by open questions or domain work: OQ-16, OQ-33, OQ-35
 
 **Delivers.** Parse, convert and format lengths in mm, cm, m, in, ft and yd with exact decimal arithmetic, as a standalone tested library.
 
@@ -212,7 +212,7 @@ scripts/check-no-raw-length-format.sh
 
 **Expected files or modules**
 
-- crates/pattern_core/src/geom/{mod,point,path,bezier,tessellate,measure,validate}.rs
+- crates/pattern_core/src/geom/{mod,point,path,bezier,tessellate,measure,validate,tolerance}.rs
 - crates/pattern_core/tests/geom_*.rs
 
 **Acceptance criteria**
@@ -247,11 +247,13 @@ cargo check -p pattern_core --target wasm32-unknown-unknown
 
 - crates/pattern_core/src/measure/{mod,profile,tag,validate,limits}.rs
 - crates/pattern_core/tests/measure_*.rs
-- crates/pattern_templates/data/aldrich-mpc-4e/thresholds.toml (placeholder until G0)
+- crates/pattern_templates/src/thresholds/{mod,load}.rs
+- crates/pattern_templates/tests/thresholds_*.rs
+- crates/pattern_templates/data/aldrich-mpc-4e/thresholds.toml (all UNSET until G0)
 
 **Acceptance criteria**
 
-- All FR-019 acceptance criteria except anonymisation hold.
+- AC-FR-019-1 to AC-FR-019-6 hold. Saving and loading (AC-7) waits for S11 and anonymisation (AC-8) for OQ-22.
 - Limits are read from the thresholds data file, which contains no invented numbers: it ships empty or marked UNSET.
 - With limits UNSET, validation reports that limits are not configured and does not guess.
 - AT-03 passes for each of the four fields.
@@ -262,6 +264,51 @@ cargo check -p pattern_core --target wasm32-unknown-unknown
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test -p pattern_core measure
+```
+
+## SK-01 Workspace skeleton (professional layout, placeholder shape)
+
+- Release: R1  Kind: code
+- Depends on: S01, S02, S03
+- Requirements: FR-038, FR-039
+- ADRs: ADR-0005, ADR-0007, ADR-0014
+- Blocked by open questions or domain work: OQ-36, OQ-37, OQ-38, OQ-39, OQ-40
+
+**Delivers.** The real application workspace from docs/design/ui-spec.md: theme module with three themes, menu bar, tool strip, control bar, canvas with rulers, grid and navigation, properties form with validation list, pieces and warnings panels, and status bar. It draws only a clearly labelled placeholder rectangle. It completes the old S14a and S14b and the form and validation list part of S14c.
+
+**Expected files or modules**
+
+- crates/pattern_ui/src/theme/{mod,tokens,dark,light,high_contrast}.rs
+- crates/pattern_ui/src/shell/{mod,menu,toolstrip,controlbar,statusbar,panels,shortcuts}.rs
+- crates/pattern_ui/src/canvas/{mod,rulers,grid,navigation,render_cpu,roles}.rs
+- crates/pattern_ui/src/panels/{properties,pieces,warnings}.rs
+- crates/pattern_ui/src/placeholder/{mod,demo_profile}.rs (the only throwaway part)
+- scripts/check-ui-tokens.sh
+- crates/pattern_ui/tests/{theme,canvas,shell,placeholder}_*.rs
+
+**Acceptance criteria**
+
+- The regions in docs/design/ui-spec.md exist: menu bar, tool strip, control bar, canvas with rulers, properties, pieces and warnings panels, status bar.
+- Three themes switch live. Each palette meets the contrast targets (text 4.5 to 1, controls 3 to 1), checked by a unit test.
+- No colour, size or icon is hard-coded in a view. scripts/check-ui-tokens.sh fails on a planted violation and passes on the clean tree.
+- Rulers, grid, cursor read-out and dimension text use the unit service in the display unit. Switching a display unit changes the text and never the drawn size.
+- Zoom to cursor, wheel, Space-drag, hand tool, fit, approximate actual size and keyboard zoom and pan work.
+- Stitch and cut role styles differ by dash pattern, not colour alone.
+- Clearing a field disables drawing and names that field. Invalid text shows the unit service message beside that field.
+- The permanent label PLACEHOLDER SHAPE, NOT A PATTERN and the limits-not-configured notice are visible.
+- Each documented shortcut maps to exactly one action. Tab is never a shortcut.
+- All state changes live in pure models with unit tests. Views hold no logic. No unwrap, expect or panic. Builds on Windows and Linux.
+- Only crates/pattern_ui/src/placeholder is throwaway. Core crates change only to fix a reported bug.
+
+**Verification commands**
+
+```
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p pattern_ui
+scripts/check-ui-tokens.sh
+scripts/check-no-raw-length-format.sh
+cargo run -p pattern_ui
 ```
 
 ## S04 Rule records and rulebook loader
@@ -575,28 +622,28 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test -p pattern_export pdf
 ```
 
-## S14 Application shell and UI
+## S14 Application UI (container: SK-01 plus S14c to S14f)
 
 - Release: R1  Kind: code
-- Depends on: S01, S03, S06, S08, S09, S10, S11
+- Depends on: SK-01, S14c, S14d, S14e, S14f
 - Requirements: FR-039, NFR-017, NFR-025
-- ADRs: ADR-0004, ADR-0005, ADR-0007
+- ADRs: ADR-0004, ADR-0005, ADR-0007, ADR-0014
 - Blocked by open questions or domain work: OQ-09, OQ-23
 
-**Delivers.** A native egui app: unit-aware measurement form, generation, a CPU-tessellated vector canvas, warnings panel, save and open, keyboard access.
+**Delivers.** The finished R1 application interface. Built as SK-01 plus four sub-slices following docs/design/ui-spec.md. This container slice is the integration check.
 
 **Expected files or modules**
 
-- crates/pattern_ui/src/{main,app,form,canvas,warnings,settings}.rs
-- crates/pattern_ui/tests/*
+- No new files. Integration tests only: crates/pattern_ui/tests/e2e_*.rs
 
 **Acceptance criteria**
 
-- The WF-01 workflow runs end to end offline in the app.
+- WF-01 runs end to end offline in the app: enter measurements, generate, inspect, save, export.
 - FR-039 criteria hold.
 - Regeneration after a measurement change is within the NFR-017 budget on the reference hardware.
 - No unwrap, expect or panic exists in pattern_ui.
 - No length is formatted outside the unit service.
+- The SK-01 placeholder module is removed.
 
 **Verification commands**
 
@@ -605,6 +652,126 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test -p pattern_ui
 cargo run -p pattern_ui
+```
+
+## S14c Properties, warnings and provenance panels
+
+- Release: R1  Kind: code
+- Depends on: S03, S04, S10, SK-01
+- Requirements: FR-019, FR-020, FR-036, FR-039
+- ADRs: ADR-0003, ADR-0014
+- Blocked by open questions or domain work: none
+
+**Delivers.** Adds to the form and validation list built in SK-01: remediation text on every warning, focus moves to the offending field, a provenance panel that shows the rules behind a selected point, and adaptation and allowance controls.
+
+**Expected files or modules**
+
+- crates/pattern_ui/src/panels/{properties,warnings,provenance}.rs
+- crates/pattern_ui/tests/panels_*.rs
+
+**Acceptance criteria**
+
+- Every error and warning shows its code, location and remediation text.
+- Selecting a construction point lists the rule IDs, kinds, status and measurements behind it.
+- Chart-derived, estimated, interpretation and extension items are visibly marked.
+- An error moves keyboard focus to the offending field.
+
+**Verification commands**
+
+```
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p pattern_ui panels
+```
+
+## S14d Pieces panel and layer visibility
+
+- Release: R1  Kind: code
+- Depends on: S06, S08, S09, SK-01
+- Requirements: FR-022, FR-024
+- ADRs: ADR-0014
+- Blocked by open questions or domain work: none
+
+**Delivers.** A list of pieces with per-piece and per-role visibility (stitch, cut, marks, labels), selection that highlights on the canvas, and a numeric dimensions read-out.
+
+**Expected files or modules**
+
+- crates/pattern_ui/src/panels/pieces.rs
+- crates/pattern_ui/tests/pieces_*.rs
+
+**Acceptance criteria**
+
+- Stitch, cut and marks are distinguishable without colour (dash style and label).
+- Toggling visibility never changes geometry or exports.
+- The numeric read-out shows key dimensions as text in the display unit.
+
+**Verification commands**
+
+```
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p pattern_ui pieces
+```
+
+## S14e File and export flows
+
+- Release: R1  Kind: code
+- Depends on: S11, S12, S13, SK-01
+- Requirements: FR-035, FR-032, FR-033, FR-043
+- ADRs: ADR-0006, ADR-0014
+- Blocked by open questions or domain work: OQ-04, OQ-26
+
+**Delivers.** New, open, save and save as, an unsaved-changes prompt, a local recent files list, and an export dialog with page size, units and a tile preview.
+
+**Expected files or modules**
+
+- crates/pattern_ui/src/flows/{file,export,recent}.rs
+- crates/pattern_ui/tests/flows_*.rs
+
+**Acceptance criteria**
+
+- A blocked export shows every blocker with its fix text and writes nothing.
+- The export dialog shows the toile statement.
+- Opening an unsupported file shows the typed error and leaves the file untouched.
+- The recent files list is stored locally and holds no measurement data.
+
+**Verification commands**
+
+```
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p pattern_ui flows
+```
+
+## S14f Keyboard and accessibility pass
+
+- Release: R1  Kind: code
+- Depends on: SK-01, S14c, S14d, S14e
+- Requirements: FR-039, NFR-025
+- ADRs: ADR-0014
+- Blocked by open questions or domain work: OQ-09, OQ-39
+
+**Delivers.** The full shortcut map, focus order, AccessKit labels and announcements, and the recorded accessibility review.
+
+**Expected files or modules**
+
+- crates/pattern_ui/src/a11y/*
+- crates/pattern_ui/tests/a11y_*.rs
+- docs/testing/evidence/mt-02.md
+
+**Acceptance criteria**
+
+- Every command has a keyboard route and the shortcut map matches docs/design/ui-spec.md.
+- Tab is used for focus order and never to hide panels.
+- Every field and tool has an accessible label. Status changes are announced.
+- MT-02 is recorded.
+
+**Verification commands**
+
+```
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test -p pattern_ui a11y
 ```
 
 ## S15 GPU render layer

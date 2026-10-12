@@ -23,5 +23,6 @@
 | AT-19 | Remove verification from one interpretation rule | Production export blocked; developer mode exports with UNVERIFIED legend | FR-020 | S04 |
 | AT-20 | Same length as 304.8 mm, 30.48 cm, 0.3048 m, 12 in and 1 ft; switch display unit through all six and back | One identical stored value; stored values and geometry unchanged by every switch | FR-038, NFR-028 | S01 |
 | AT-21 | Export SVG, PDF and DXF once per display unit | Geometry identical across display units; only legends and display-unit metadata differ; DXF units header millimetres; imperial adds 4 in square | FR-038, FR-032, FR-033 | S13 |
+| AT-22 | Reviewer completes WF-01 using only the workspace | Every region, ruler, read-out and command works through the workspace; units change text without changing geometry; each theme meets contrast targets; no view hard-codes a token | FR-044, FR-039, FR-038 | SK-01 |
 
 R2 tests (AT-05, AT-11, AT-12, AT-18) are not required to pass for the R1 gate.
