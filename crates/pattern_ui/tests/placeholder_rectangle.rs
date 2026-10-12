@@ -4,7 +4,7 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use pattern_core::units::Unit;
+use pattern_core::units::{format_length, FormatOptions, Length, Unit};
 use pattern_ui::panels::properties::{FieldId, PropertiesForm};
 use pattern_ui::placeholder;
 
@@ -43,14 +43,22 @@ fn t_sk01_01_rectangle_is_hips_by_skirt_length_across_units() {
 }
 
 #[test]
-fn t_sk01_02_pattern_unit_changes_no_rectangle() {
+fn t_sk01_02_pattern_unit_changes_strings_not_the_rectangle() {
     let mut form = form(Unit::Cm, "70", "94", "20", "60");
     let before = placeholder::from_draft(&form.parse().draft).expect("complete");
+
+    let hips = Length::from_mm(940.0).expect("940 mm");
+    let mut strings = std::collections::BTreeSet::new();
     for unit in pattern_ui::panels::properties::UNITS {
         form.pattern_unit = unit;
         let after = placeholder::from_draft(&form.parse().draft).expect("complete");
         assert_eq!(before, after, "pattern unit {unit:?} changed the rectangle");
+        strings.insert(format_length(hips, &FormatOptions::default_for(unit)));
     }
+    assert!(
+        strings.len() > 1,
+        "switching units produced no different strings: {strings:?}"
+    );
 }
 
 #[test]
