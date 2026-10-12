@@ -168,6 +168,10 @@ fn t_fr_038_07_garbage_never_panics() {
         "1 mm mm",                          // duplicate suffix
         "1/2",                              // fraction with no unit and no default handling
         "−10 mm",                           // Unicode minus sign (not ASCII hyphen)
+        "94°",                              // multi-byte char as the last character
+        "94 °",                             // suffix scan would split inside '°'
+        "°",                                // multi-byte char only
+        "12 é",                             // multi-byte alphabetic char
     ];
     for &input in garbage {
         // Must not panic. Return value can be Ok or Err.
@@ -181,4 +185,13 @@ fn t_fr_038_07_very_long_string_does_not_panic() {
     let svc = UnitService::new();
     let long = "a".repeat(100_000);
     let _ = svc.parse(&long, Unit::Mm);
+}
+
+/// A multi-byte character straddling the length limit must not panic.
+#[test]
+fn t_fr_038_07_multibyte_at_length_limit_does_not_panic() {
+    let svc = UnitService::new();
+    let mut input = "1".repeat(255);
+    input.push('°');
+    let _ = svc.parse(&input, Unit::Mm);
 }

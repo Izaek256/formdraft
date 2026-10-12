@@ -1,3 +1,5 @@
 #![forbid(unsafe_code)]
 
-fn main() {}
+fn main() -> eframe::Result {
+    pattern_ui::run()
+}
