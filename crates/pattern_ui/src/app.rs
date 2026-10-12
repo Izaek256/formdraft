@@ -4,9 +4,13 @@
 //! composes the regions and routes events between them.
 
 use egui::Ui;
+use pattern_core::measure::{validate_draft, Limits, ProfileMetadata, ValidationReport};
 use pattern_core::units::{format_length, FormatOptions, Length, Unit};
 
-use crate::canvas::Canvas;
+use crate::canvas::{roles::Role, Bounds, Canvas};
+use crate::panels::properties::PropertiesForm;
+use crate::panels::{pieces, properties, warnings};
+use crate::placeholder;
 use crate::shell::menu::{self, MenuEvent, MenuState};
 use crate::shell::shortcuts::{self, Action, Scope};
 use crate::shell::statusbar::{self, StatusBarState};
@@ -36,6 +40,16 @@ pub struct Workspace {
     pub show_about: bool,
     /// The canvas.
     pub canvas: Canvas,
+    /// The properties form.
+    pub form: PropertiesForm,
+    /// The thresholds, when they load.
+    pub limits: Option<Limits>,
+    /// The demo metadata, when it builds.
+    pub metadata: Option<ProfileMetadata>,
+    /// Whether the placeholder piece is visible.
+    pub piece_visible: bool,
+    /// The latest validation report, for the warnings panel.
+    pub report: ValidationReport,
 }
 
 impl Default for Workspace {
@@ -49,6 +63,11 @@ impl Default for Workspace {
             show_shortcuts: false,
             show_about: false,
             canvas: Canvas::new([800.0, 600.0]),
+            form: PropertiesForm::default(),
+            limits: pattern_templates::thresholds::load_thresholds().ok(),
+            metadata: placeholder::demo_profile::metadata().ok(),
+            piece_visible: true,
+            report: ValidationReport::new(),
         }
     }
 }
@@ -106,6 +125,49 @@ impl WorkspaceApp {
     pub fn workspace(&self) -> &Workspace {
         &self.workspace
     }
+
+    /// Re-parse the form, run S03 validation and refresh the canvas content,
+    /// the pattern display unit and the warnings report.
+    fn refresh(&mut self) {
+        let workspace = &mut self.workspace;
+        workspace.canvas.display_unit = workspace.form.pattern_unit;
+
+        let parsed = workspace.form.parse();
+        let limits = workspace.limits.clone();
+        let metadata = workspace.metadata.clone();
+
+        let mut content: Option<Bounds> = None;
+        if parsed.errors.is_empty() {
+            if let (Some(limits), Some(metadata)) = (limits.as_ref(), metadata.as_ref()) {
+                match validate_draft(parsed.draft.clone(), limits, metadata.clone()) {
+                    Ok((_profile, report)) => {
+                        workspace.report = report;
+                        content = placeholder::from_draft(&parsed.draft);
+                    }
+                    Err((report, _error)) => workspace.report = report,
+                }
+            } else {
+                workspace.report = ValidationReport::new();
+            }
+        } else {
+            workspace.report = ValidationReport::new();
+        }
+
+        match content {
+            Some(bounds) => workspace.canvas.set_content(
+                bounds,
+                placeholder::PIECE_LABEL.to_owned(),
+                Role::Placeholder,
+            ),
+            None => {
+                workspace.canvas.content = None;
+                workspace.canvas.selection = None;
+            }
+        }
+        if let Some(content) = workspace.canvas.content.as_mut() {
+            content.visible = workspace.piece_visible;
+        }
+    }
 }
 
 impl eframe::App for WorkspaceApp {
@@ -114,6 +176,7 @@ impl eframe::App for WorkspaceApp {
         let tokens = theme::tokens(self.workspace.theme);
         self.workspace.canvas.show_rulers = self.workspace.show_rulers;
         self.workspace.canvas.show_grid = self.workspace.show_grid;
+        self.refresh();
 
         let menu_state = MenuState {
             theme: self.workspace.theme,
@@ -150,6 +213,8 @@ impl eframe::App for WorkspaceApp {
 
         if self.workspace.panels.any_visible() {
             let panels = self.workspace.panels;
+            let size_text = self.piece_size_text();
+            let workspace = &mut self.workspace;
             egui::Panel::right("panel_column")
                 .exact_size(tokens.sizes.panel_width)
                 .show(ui, |ui| {
@@ -157,21 +222,22 @@ impl eframe::App for WorkspaceApp {
                         egui::CollapsingHeader::new("Properties")
                             .default_open(true)
                             .show(ui, |ui| {
-                                ui.label("Stage C fills this panel.");
+                                let parsed = workspace.form.parse();
+                                properties::draw(ui, &mut workspace.form, &parsed, &tokens);
                             });
                     }
                     if panels.pieces {
                         egui::CollapsingHeader::new("Pieces")
                             .default_open(true)
                             .show(ui, |ui| {
-                                ui.label("Stage C fills this panel.");
+                                pieces::draw(ui, &mut workspace.piece_visible, &size_text, &tokens);
                             });
                     }
                     if panels.warnings {
                         egui::CollapsingHeader::new("Warnings")
                             .default_open(true)
                             .show(ui, |ui| {
-                                ui.label("Stage C fills this panel.");
+                                warnings::draw(ui, &workspace.report, &tokens);
                             });
                     }
                 });
@@ -222,6 +288,24 @@ impl eframe::App for WorkspaceApp {
 }
 
 impl WorkspaceApp {
+    /// The placeholder size in the pattern unit and in millimetres.
+    fn piece_size_text(&self) -> String {
+        let unit = self.workspace.form.pattern_unit;
+        match &self.workspace.canvas.content {
+            Some(content) => {
+                let size = content.bounds.size_mm();
+                format!(
+                    "{} x {}  ({} , {})",
+                    format_mm(unit, size[0]),
+                    format_mm(unit, size[1]),
+                    format_mm(Unit::Mm, size[0]),
+                    format_mm(Unit::Mm, size[1]),
+                )
+            }
+            None => String::from("No shape: fill every field with a positive number."),
+        }
+    }
+
     fn status_state(&self, zoom_percent: f64) -> StatusBarState {
         let unit = self.workspace.canvas.display_unit;
         let cursor = match self.cursor_mm {
@@ -240,7 +324,7 @@ impl WorkspaceApp {
             cursor,
             selection,
             method: METHOD_NOTICE.to_owned(),
-            limits_notice: true,
+            limits_notice: !self.workspace.report.limits_complete,
         }
     }
 

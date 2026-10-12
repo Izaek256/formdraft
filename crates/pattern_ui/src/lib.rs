@@ -7,6 +7,8 @@
 
 pub mod app;
 pub mod canvas;
+pub mod panels;
+pub mod placeholder;
 pub mod shell;
 pub mod theme;
 

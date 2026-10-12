@@ -114,15 +114,23 @@ impl Canvas {
         }
     }
 
-    /// Set the drawable content and clear any stale selection.
+    /// Set the drawable content. Keeps an existing selection when the piece is
+    /// unchanged, so a redraw does not drop the user's selection.
     pub fn set_content(&mut self, bounds: Bounds, label: String, role: roles::Role) {
+        let unchanged = self
+            .content
+            .as_ref()
+            .is_some_and(|c| c.bounds == bounds && c.label == label && c.role == role);
+        let visible = self.content.as_ref().is_none_or(|c| c.visible);
         self.content = Some(Content {
             bounds,
             label,
             role,
-            visible: true,
+            visible,
         });
-        self.selection = None;
+        if !unchanged {
+            self.selection = None;
+        }
     }
 
     /// Select a piece when `point_mm` lies inside it, otherwise clear.
