@@ -1,5 +1,12 @@
 [advisories]
-ignore = []
+ignore = [
+    # ttf-parser is pulled in transitively by eframe -> egui -> epaint ->
+    # ab_glyph -> owned_ttf_parser. It is unmaintained but has no fixed
+    # version and no known vulnerability in our usage. Re-check when egui
+    # drops ab_glyph or a maintained fork appears.
+    # Added 2026-10-12 for SK-01 (ADR-0014); needs lead sign-off. See OQ-32.
+    "RUSTSEC-2026-0192",
+]
 
 [licenses]
 allow = [
@@ -14,6 +21,11 @@ allow = [
     "BSL-1.0",
     "Unicode-3.0",
     "Unicode-DFS-2016",
+    # Bundled fonts in epaint_default_fonts (via eframe -> egui -> epaint).
+    # Both are free/open font licences. Added 2026-10-12 for SK-01
+    # (ADR-0014); needs lead sign-off. See OQ-32.
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
 ]
 confidence-threshold = 0.8
 unused-allowed-license = "allow"
