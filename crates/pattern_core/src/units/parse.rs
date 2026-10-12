@@ -54,7 +54,13 @@ pub fn parse_length(input: &str, default_unit: Unit) -> Result<Length, ParseErro
     // Limit input length to prevent pathological inputs.
     const MAX_LEN: usize = 256;
     let s = if input.len() > MAX_LEN {
-        &input[..MAX_LEN]
+        // Truncate on a character boundary: a raw byte slice can split a
+        // multi-byte character and panic.
+        let mut end = MAX_LEN;
+        while end > 0 && !input.is_char_boundary(end) {
+            end -= 1;
+        }
+        &input[..end]
     } else {
         input
     };
@@ -90,7 +96,12 @@ fn split_number_and_unit(s: &str, default_unit: Unit) -> Result<(&str, Unit), Pa
         if s.len() < suffix_len {
             continue;
         }
-        let (before, maybe_suffix) = s.split_at(s.len() - suffix_len);
+        let split = s.len() - suffix_len;
+        if !s.is_char_boundary(split) {
+            // Splitting here would cut a multi-byte character in half.
+            continue;
+        }
+        let (before, maybe_suffix) = s.split_at(split);
         if let Some(unit) = Unit::from_suffix(maybe_suffix) {
             // The part before the suffix must be a number or empty.
             let before = before.trim_end();
