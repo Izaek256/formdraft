@@ -7,7 +7,7 @@
 
 use egui::{RichText, Ui};
 
-use crate::shell::toolstrip::{self, Tool};
+use crate::shell::toolstrip::Tool;
 use crate::theme::Tokens;
 
 /// What the toolbar displays. All text is preformatted by the caller.
@@ -49,15 +49,15 @@ pub enum ToolBarEvent {
 }
 
 /// Draw the toolbar and return the events the user triggered.
+///
+/// Canvas tools are not here: they live in the Tools menu and the V/H/Z
+/// shortcuts, as in the reference layout. The bar keeps zoom, the live grid
+/// pill and the three view toggles so it fits the centre column at 1365 px.
 pub fn draw(ui: &mut Ui, state: &ToolBarState, tokens: &Tokens) -> Vec<ToolBarEvent> {
     let mut events = Vec::new();
     ui.horizontal(|ui| {
-        for tool in Tool::ALL {
-            if toolstrip::tool_button(ui, tool, state.tool, tokens).clicked() {
-                events.push(ToolBarEvent::UseTool(tool));
-            }
-        }
-        ui.separator();
+        ui.spacing_mut().item_spacing =
+            egui::Vec2::new(tokens.sizes.spacing_s, tokens.sizes.spacing_m);
         if ui
             .button(RichText::new("−").size(tokens.sizes.font_body))
             .on_hover_text("Zoom out (Ctrl+-)")
@@ -65,7 +65,6 @@ pub fn draw(ui: &mut Ui, state: &ToolBarState, tokens: &Tokens) -> Vec<ToolBarEv
         {
             events.push(ToolBarEvent::ZoomOut);
         }
-        ui.label(RichText::new(&state.zoom).size(tokens.sizes.font_body));
         if ui
             .button(RichText::new("+").size(tokens.sizes.font_body))
             .on_hover_text("Zoom in (Ctrl++)")

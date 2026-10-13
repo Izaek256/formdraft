@@ -17,6 +17,8 @@ pub enum PiecesEvent {
     ToggleVisibility,
     /// Select the piece on the canvas.
     Select,
+    /// The user asked to open the Measurements tab.
+    OpenMeasurements,
 }
 
 /// Draw the pieces panel and return the events the user triggered.
@@ -32,10 +34,18 @@ pub fn draw(
     let mut events = Vec::new();
     if !has_shape {
         ui.label(
-            RichText::new("No shape: fill every field with a positive number.")
+            RichText::new("No pieces yet.")
+                .size(tokens.sizes.font_body)
+                .strong(),
+        );
+        ui.label(
+            RichText::new("Fill every measurement with a positive number and the placeholder piece appears here.")
                 .size(tokens.sizes.font_small)
                 .color(tokens.colors.text_muted),
         );
+        if ui.add(egui::Button::new("Enter measurements")).clicked() {
+            events.push(PiecesEvent::OpenMeasurements);
+        }
     } else {
         let row = egui::Button::new("")
             .selected(selected)

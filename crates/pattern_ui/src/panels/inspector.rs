@@ -73,6 +73,15 @@ pub fn draw_tabs(ui: &mut Ui, current: &mut InspectorTab, tokens: &Tokens) -> bo
     changed
 }
 
+/// Something the Properties tab asked the application to do.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PropertiesEvent {
+    /// The piece name field changed.
+    Renamed,
+    /// The user asked to open the Measurements tab.
+    OpenMeasurements,
+}
+
 /// Read-only fact plus live dimensions for the Properties tab.
 #[derive(Debug, Clone)]
 pub struct PieceFacts {
@@ -84,16 +93,20 @@ pub struct PieceFacts {
     pub size: String,
     /// Whether a selection supplies the dimensions.
     pub from_selection: bool,
+    /// Whether a shape exists at all.
+    pub exists: bool,
 }
 
 /// Draw the Properties tab: rename field, method facts and dimensions.
+/// When no shape exists the dimensions section is an honest empty state with
+/// a button that opens the Measurements tab.
 pub fn draw_properties(
     ui: &mut Ui,
     piece_name: &mut String,
     facts: &PieceFacts,
     tokens: &Tokens,
-) -> bool {
-    let mut changed = false;
+) -> Vec<PropertiesEvent> {
+    let mut events = Vec::new();
     section(ui, "Pattern Piece", tokens);
     ui.horizontal(|ui| {
         ui.label(RichText::new("Name").size(tokens.sizes.font_small));
@@ -102,11 +115,26 @@ pub fn draw_properties(
             .on_hover_text("Rename the piece on the canvas")
             .changed()
         {
-            changed = true;
+            events.push(PropertiesEvent::Renamed);
         }
     });
     fact(ui, "Kind", &facts.kind, tokens);
     fact(ui, "Method", METHOD_NOTICE, tokens);
+    if !facts.exists {
+        section(ui, "Dimensions", tokens);
+        ui.label(
+            RichText::new(
+                "No shape yet. The dimensions appear once every measurement \
+                 is a positive number.",
+            )
+            .size(tokens.sizes.font_small)
+            .color(tokens.colors.text_muted),
+        );
+        if ui.add(egui::Button::new("Enter measurements")).clicked() {
+            events.push(PropertiesEvent::OpenMeasurements);
+        }
+        return events;
+    }
     section(ui, "Dimensions", tokens);
     ui.label(
         RichText::new(if facts.from_selection {
@@ -119,7 +147,7 @@ pub fn draw_properties(
     );
     fact(ui, "Origin", &facts.origin, tokens);
     fact(ui, "Size", &facts.size, tokens);
-    changed
+    events
 }
 
 /// Draw the Measurements tab: the body-measurement form.
@@ -175,7 +203,7 @@ fn section(ui: &mut Ui, title: &str, tokens: &Tokens) {
     ui.label(RichText::new(title).size(tokens.sizes.font_body).strong());
 }
 
-/// One read-only fact row.
+/// One read-only fact row. The value wraps, so long method notices never clip.
 fn fact(ui: &mut Ui, name: &str, value: &str, tokens: &Tokens) {
     ui.horizontal(|ui| {
         ui.label(
@@ -183,6 +211,6 @@ fn fact(ui: &mut Ui, name: &str, value: &str, tokens: &Tokens) {
                 .size(tokens.sizes.font_small)
                 .color(tokens.colors.text_muted),
         );
-        ui.label(RichText::new(value).size(tokens.sizes.font_small));
+        ui.add(egui::Label::new(RichText::new(value).size(tokens.sizes.font_small)).wrap());
     });
 }

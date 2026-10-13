@@ -18,7 +18,7 @@ pub fn run() -> eframe::Result {
         viewport: egui::ViewportBuilder::default()
             .with_title("FormDraft — Precision Pattern Engineering")
             .with_app_id("formdraft")
-            .with_inner_size([1440.0, 900.0])
+            .with_inner_size([1340.0, 680.0])
             .with_min_inner_size([1100.0, 680.0]),
         ..Default::default()
     };

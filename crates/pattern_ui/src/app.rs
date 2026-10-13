@@ -8,9 +8,9 @@ use pattern_core::measure::{validate_draft, Limits, ProfileMetadata, ValidationR
 use pattern_core::units::{format_length, FormatOptions, Length, Unit};
 
 use crate::canvas::{grid, roles::Role, Bounds, Canvas};
-use crate::panels::inspector::{self, InspectorTab, PieceFacts};
+use crate::panels::inspector::{self, InspectorTab, PieceFacts, PropertiesEvent};
 use crate::panels::properties::PropertiesForm;
-use crate::panels::{pieces, warnings};
+use crate::panels::{layers, pieces, warnings};
 use crate::placeholder;
 use crate::shell::controlbar::{self, ToolBarEvent, ToolBarState};
 use crate::shell::dialogs::{self, Dialog, SessionFacts};
@@ -313,9 +313,15 @@ impl WorkspaceApp {
                 status_events = statusbar::draw(ui, &status_state, &tokens);
             });
 
-        // Bottom view strip.
+        // Bottom view strip: full height for a card, one status line when empty.
+        let has_shape = self.workspace.canvas.content.is_some();
+        let strip_height = if has_shape {
+            tokens.sizes.strip_height
+        } else {
+            tokens.sizes.status_bar_height
+        };
         egui::Panel::bottom("view_strip")
-            .exact_size(tokens.sizes.strip_height)
+            .exact_size(strip_height)
             .show(ui, |ui| {
                 self.draw_view_strip(ui, &tokens);
             });
@@ -338,10 +344,12 @@ impl WorkspaceApp {
 
             let mut tool_events: Vec<PatternToolEvent> = Vec::new();
             let mut piece_events = Vec::new();
-            let has_shape = self.workspace.canvas.content.is_some();
+            let mut layer_events = Vec::new();
             let piece_name = self.workspace.piece_name.clone();
             let piece_selected = self.workspace.canvas.selection.is_some();
             let size_text = self.piece_size_text();
+            let show_grid = self.workspace.show_grid;
+            let show_rulers = self.workspace.show_rulers;
             egui::Panel::left("tools_panel")
                 .exact_size(tokens.sizes.tools_width)
                 .show(ui, |ui| {
@@ -367,6 +375,20 @@ impl WorkspaceApp {
                                 &size_text,
                                 &tokens,
                             );
+                            ui.separator();
+                            ui.label(
+                                egui::RichText::new("Layers")
+                                    .size(tokens.sizes.font_body)
+                                    .strong(),
+                            );
+                            layer_events = layers::draw(
+                                ui,
+                                self.workspace.piece_visible,
+                                has_shape,
+                                show_grid,
+                                show_rulers,
+                                &tokens,
+                            );
                         }
                     });
                 });
@@ -378,6 +400,7 @@ impl WorkspaceApp {
                 );
             }
             self.apply_piece_events(piece_events, now_sec);
+            self.apply_layer_events(layer_events);
         }
 
         // Right inspector.
@@ -395,12 +418,21 @@ impl WorkspaceApp {
                         if show_properties {
                             match self.workspace.inspector_tab {
                                 InspectorTab::Properties => {
-                                    inspector::draw_properties(
+                                    let events = inspector::draw_properties(
                                         ui,
                                         &mut self.workspace.piece_name,
                                         &facts,
                                         &tokens,
                                     );
+                                    for event in events {
+                                        match event {
+                                            PropertiesEvent::Renamed => {}
+                                            PropertiesEvent::OpenMeasurements => {
+                                                self.workspace.inspector_tab =
+                                                    InspectorTab::Measurements;
+                                            }
+                                        }
+                                    }
                                 }
                                 InspectorTab::Measurements => {
                                     inspector::draw_measurements(
@@ -441,6 +473,9 @@ impl WorkspaceApp {
             let response = self.workspace.canvas.show(ui, &tokens, tool);
             self.canvas_focused = response.focused;
             self.cursor_mm = response.cursor_world_mm;
+            if response.open_measurements {
+                self.workspace.inspector_tab = InspectorTab::Measurements;
+            }
         });
 
         self.apply_menu_events(menu_events, now_sec);
@@ -496,6 +531,26 @@ impl WorkspaceApp {
                     );
                 }
                 pieces::PiecesEvent::Select => self.select_content(),
+                pieces::PiecesEvent::OpenMeasurements => {
+                    self.workspace.inspector_tab = InspectorTab::Measurements;
+                }
+            }
+        }
+    }
+
+    /// Apply layers-panel events.
+    fn apply_layer_events(&mut self, events: Vec<layers::LayersEvent>) {
+        for event in events {
+            match event {
+                layers::LayersEvent::ToggleOutline => {
+                    self.workspace.piece_visible = !self.workspace.piece_visible;
+                }
+                layers::LayersEvent::ToggleGrid => {
+                    self.workspace.apply_action(Action::ToggleGrid);
+                }
+                layers::LayersEvent::ToggleRulers => {
+                    self.workspace.apply_action(Action::ToggleRulers);
+                }
             }
         }
     }
@@ -644,69 +699,75 @@ impl WorkspaceApp {
 
     /// Bottom view strip: one card per drawable piece plus a disabled add card.
     fn draw_view_strip(&mut self, ui: &mut Ui, tokens: &Tokens) {
-        ui.horizontal(|ui| {
-            match &self.workspace.canvas.content {
-                Some(content) => {
-                    let selected = self.workspace.canvas.selection.is_some();
-                    let label = content.label.clone();
-                    let bounds = content.bounds;
-                    let (rect, response) = ui.allocate_exact_size(
-                        egui::Vec2::new(tokens.sizes.thumb_size, tokens.sizes.thumb_size),
-                        egui::Sense::click(),
-                    );
-                    let background = if selected {
-                        tokens.colors.selection
-                    } else if response.hovered() {
-                        tokens.colors.hover
-                    } else {
-                        tokens.colors.surface
-                    };
-                    ui.painter().rect_filled(
-                        rect,
-                        egui::CornerRadius::same(tokens.sizes.corner_radius),
-                        background,
-                    );
-                    draw_miniature(ui, rect, bounds, &tokens.colors);
-                    if response.on_hover_text("Select the piece").clicked() {
-                        self.select_content();
-                    }
-                    ui.vertical(|ui| {
-                        ui.label(egui::RichText::new(&label).size(tokens.sizes.font_small));
-                        ui.label(
-                            egui::RichText::new(self.piece_size_text())
-                                .size(tokens.sizes.font_small)
-                                .color(tokens.colors.text_muted),
-                        );
-                    });
+        ui.horizontal(|ui| match &self.workspace.canvas.content {
+            Some(content) => {
+                let selected = self.workspace.canvas.selection.is_some();
+                let label = content.label.clone();
+                let bounds = content.bounds;
+                let (rect, response) = ui.allocate_exact_size(
+                    egui::Vec2::new(tokens.sizes.thumb_size, tokens.sizes.thumb_size),
+                    egui::Sense::click(),
+                );
+                let background = if selected {
+                    tokens.colors.selection
+                } else if response.hovered() {
+                    tokens.colors.hover
+                } else {
+                    tokens.colors.surface
+                };
+                ui.painter().rect_filled(
+                    rect,
+                    egui::CornerRadius::same(tokens.sizes.corner_radius),
+                    background,
+                );
+                draw_miniature(ui, rect, bounds, tokens);
+                if response.on_hover_text("Select the piece").clicked() {
+                    self.select_content();
                 }
-                None => {
+                ui.vertical(|ui| {
+                    ui.label(egui::RichText::new(&label).size(tokens.sizes.font_small));
                     ui.label(
-                        egui::RichText::new("No views yet — complete the measurements.")
+                        egui::RichText::new(self.piece_size_text())
                             .size(tokens.sizes.font_small)
                             .color(tokens.colors.text_muted),
                     );
-                }
+                });
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.add_enabled(false, egui::Button::new("+ Add View"))
+                        .on_hover_text("More views arrive in a later release");
+                });
             }
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                ui.add_enabled(false, egui::Button::new("+ Add View"))
-                    .on_hover_text("More views arrive in a later release");
-            });
+            None => {
+                ui.label(
+                    egui::RichText::new("No views yet — enter the measurements to draft a piece.")
+                        .size(tokens.sizes.font_small)
+                        .color(tokens.colors.text_muted),
+                );
+            }
         });
     }
 
-    /// The placeholder size in the pattern unit and in millimetres.
+    /// The placeholder size in the pattern unit, with millimetres only when
+    /// the pattern unit differs from millimetres.
     fn piece_size_text(&self) -> String {
         let unit = self.workspace.form.pattern_unit;
         match &self.workspace.canvas.content {
             Some(content) => {
                 let size = content.bounds.size_mm();
-                format!(
-                    "{} x {}  ({} , {})",
+                let primary = format!(
+                    "{} x {}",
                     format_mm(unit, size[0]),
-                    format_mm(unit, size[1]),
-                    format_mm(Unit::Mm, size[0]),
-                    format_mm(Unit::Mm, size[1]),
-                )
+                    format_mm(unit, size[1])
+                );
+                if unit == Unit::Mm {
+                    primary
+                } else {
+                    format!(
+                        "{primary}  ({}, {})",
+                        format_mm(Unit::Mm, size[0]),
+                        format_mm(Unit::Mm, size[1])
+                    )
+                }
             }
             None => String::from("No shape: fill every field with a positive number."),
         }
@@ -741,13 +802,15 @@ impl WorkspaceApp {
                     ),
                     size: format_size(unit, size[0], size[1]),
                     from_selection,
+                    exists: true,
                 }
             }
             None => PieceFacts {
-                kind: String::from("Placeholder rectangle (not a pattern)"),
+                kind: String::from("No piece yet"),
                 origin: String::from("-"),
                 size: String::from("-"),
                 from_selection: false,
+                exists: false,
             },
         }
     }
@@ -873,7 +936,7 @@ fn shortcut_list(ui: &mut Ui, tokens: &Tokens) {
 }
 
 /// A miniature of the piece bounds, keeping the true aspect ratio.
-fn draw_miniature(ui: &Ui, rect: egui::Rect, bounds: Bounds, colors: &crate::theme::Colors) {
+fn draw_miniature(ui: &Ui, rect: egui::Rect, bounds: Bounds, tokens: &Tokens) {
     let size = bounds.size_mm();
     if size[0] <= 0.0 || size[1] <= 0.0 {
         return;
@@ -891,7 +954,7 @@ fn draw_miniature(ui: &Ui, rect: egui::Rect, bounds: Bounds, colors: &crate::the
     ui.painter().rect_stroke(
         egui::Rect::from_min_size(origin, egui::Vec2::new(width, height)),
         egui::CornerRadius::ZERO,
-        egui::Stroke::new(scale.min(2.0), colors.placeholder),
+        egui::Stroke::new(tokens.sizes.stroke_thin, tokens.colors.placeholder),
         egui::StrokeKind::Inside,
     );
 }
