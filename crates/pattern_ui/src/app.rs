@@ -135,6 +135,47 @@ impl Workspace {
     pub fn notify(&mut self, now_sec: f64, text: String) {
         self.toasts.push(now_sec, text);
     }
+
+    /// Re-parse the form, run S03 validation and refresh the canvas content,
+    /// the pattern display unit and the warnings report. This is the real
+    /// input path: field text in, drawable bounds and report out. Tests call
+    /// it directly so the flow is covered without a UI harness.
+    pub fn refresh(&mut self) {
+        self.canvas.display_unit = self.form.pattern_unit;
+
+        let parsed = self.form.parse();
+        let limits = self.limits.clone();
+        let metadata = self.metadata.clone();
+
+        let mut content: Option<Bounds> = None;
+        if parsed.errors.is_empty() {
+            if let (Some(limits), Some(metadata)) = (limits.as_ref(), metadata.as_ref()) {
+                match validate_draft(parsed.draft.clone(), limits, metadata.clone()) {
+                    Ok((_profile, report)) => {
+                        self.report = report;
+                        content = placeholder::from_draft(&parsed.draft);
+                    }
+                    Err((report, _error)) => self.report = report,
+                }
+            } else {
+                self.report = ValidationReport::new();
+            }
+        } else {
+            self.report = ValidationReport::new();
+        }
+
+        let label = self.piece_name.clone();
+        match content {
+            Some(bounds) => self.canvas.set_content(bounds, label, Role::Placeholder),
+            None => {
+                self.canvas.content = None;
+                self.canvas.selection = None;
+            }
+        }
+        if let Some(content) = self.canvas.content.as_mut() {
+            content.visible = self.piece_visible;
+        }
+    }
 }
 
 /// Format a millimetre value through the unit service (ADR-0007).
@@ -161,6 +202,7 @@ pub struct WorkspaceApp {
     workspace: Workspace,
     canvas_focused: bool,
     cursor_mm: Option<[f64; 2]>,
+    centered: bool,
 }
 
 impl WorkspaceApp {
@@ -169,53 +211,42 @@ impl WorkspaceApp {
         &self.workspace
     }
 
-    /// Re-parse the form, run S03 validation and refresh the canvas content,
-    /// the pattern display unit and the warnings report.
-    fn refresh(&mut self) {
-        let workspace = &mut self.workspace;
-        workspace.canvas.display_unit = workspace.form.pattern_unit;
-
-        let parsed = workspace.form.parse();
-        let limits = workspace.limits.clone();
-        let metadata = workspace.metadata.clone();
-
-        let mut content: Option<Bounds> = None;
-        if parsed.errors.is_empty() {
-            if let (Some(limits), Some(metadata)) = (limits.as_ref(), metadata.as_ref()) {
-                match validate_draft(parsed.draft.clone(), limits, metadata.clone()) {
-                    Ok((_profile, report)) => {
-                        workspace.report = report;
-                        content = placeholder::from_draft(&parsed.draft);
-                    }
-                    Err((report, _error)) => workspace.report = report,
-                }
+    /// Centre the window on the first frame, using the real outer rect.
+    ///
+    /// eframe's `NativeOptions::centered` centres by inner size, so the title
+    /// bar and bottom edge land under the taskbar on short screens. Here the
+    /// title bar is included (outer rect) and the y position is clamped so the
+    /// window stays fully visible.
+    fn center_window(&mut self, ctx: &egui::Context) {
+        self.centered = true;
+        let placement = ctx.input(|i| {
+            let outer = i.viewport().outer_rect?;
+            let monitor = i.viewport().monitor_size?;
+            let x = (monitor.x - outer.size().x) / 2.0;
+            let y = (monitor.y - outer.size().y) / 2.0;
+            // ponytail: assumes the taskbar is at most 40 px and on a screen
+            // edge; query the work area (winit/FFI) if that ever matters.
+            let max_y = (monitor.y - outer.size().y) - 40.0;
+            let y = if max_y < 8.0 {
+                8.0
             } else {
-                workspace.report = ValidationReport::new();
-            }
-        } else {
-            workspace.report = ValidationReport::new();
-        }
-
-        let label = workspace.piece_name.clone();
-        match content {
-            Some(bounds) => workspace
-                .canvas
-                .set_content(bounds, label, Role::Placeholder),
-            None => {
-                workspace.canvas.content = None;
-                workspace.canvas.selection = None;
-            }
-        }
-        if let Some(content) = workspace.canvas.content.as_mut() {
-            content.visible = workspace.piece_visible;
+                y.clamp(8.0, max_y)
+            };
+            Some([x, y])
+        });
+        if let Some([x, y]) = placement {
+            ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(egui::pos2(x, y)));
         }
     }
 }
 
 impl eframe::App for WorkspaceApp {
     fn ui(&mut self, ui: &mut Ui, _frame: &mut eframe::Frame) {
+        if !self.centered {
+            self.center_window(ui.ctx());
+        }
         theme::apply(ui.ctx(), self.workspace.theme);
-        self.refresh();
+        self.workspace.refresh();
 
         let now_sec = ui.input(|i| i.time);
         if !self.startup.is_finished(now_sec) {

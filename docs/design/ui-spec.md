@@ -138,6 +138,6 @@ The shell grew beyond the SK-01 regions to match the product structure in the Fo
 | Toasts | Tool, theme, unit, fit and validation confirmations | Only real events queue a toast; nothing invents progress |
 | Splash | Logo, product name, version from `CARGO_PKG_VERSION`, three genuine startup steps with a minimum display time | Steps are discrete work (limits, profile, canvas fit), never a fabricated percentage |
 
-Column widths follow the reference: rail 130, tools 286, inspector 392, fluid centre. The default window is 1340 x 680 so it fits a 1366 x 768 screen with the taskbar. The first valid draft fits itself into the viewport; later edits keep the user's pan and zoom.
+Column widths follow the reference: rail 130, tools 286, inspector 392, fluid centre. The default window is 1340 x 680 so it fits a 1366 x 768 screen with the taskbar. It opens centred on the primary monitor on the first frame (`WorkspaceApp::center_window`), using the outer rect so the title bar and bottom edge stay clear of the taskbar. The first valid draft fits itself into the viewport; later edits keep the user's pan and zoom.
 
 The dark palette stays charcoal with a dark canvas because T-SK01-11 requires light text to keep 4.5:1 on every surface it is painted on, including the canvas. The light theme carries the paper-white canvas of the reference. New palette fields: `surface`, `hover`, `disabled`, `success`, `scrim`. New size tokens: rail, tools, inspector, title bar, tab, strip, control, thumbnail and splash dimensions.
