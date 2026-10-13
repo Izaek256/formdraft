@@ -56,24 +56,60 @@ pub fn tokens(kind: ThemeKind) -> Tokens {
 }
 
 /// Apply a theme to the egui context so every widget agrees with the tokens.
+///
+/// Hover, pressed and selected states come from the palette (no per-view
+/// colours), corners and strokes come from the shared sizes, and the
+/// separator adopts the border colour for a crisp panel look.
 pub fn apply(ctx: &egui::Context, kind: ThemeKind) {
     let t = tokens(kind);
+    let c = &t.colors;
     let base = match kind {
         ThemeKind::Light => egui::Visuals::light(),
         ThemeKind::Dark | ThemeKind::HighContrast => egui::Visuals::dark(),
     };
+    let rounding = egui::CornerRadius::same(t.sizes.corner_radius);
+    let widgets = |fill: egui::Color32, stroke_color: egui::Color32| egui::style::WidgetVisuals {
+        bg_fill: fill,
+        weak_bg_fill: fill,
+        bg_stroke: egui::Stroke::new(t.sizes.stroke_thin, stroke_color),
+        corner_radius: rounding,
+        fg_stroke: egui::Stroke::new(t.sizes.stroke_medium, c.text),
+        expansion: 0.0,
+    };
     let visuals = egui::Visuals {
-        panel_fill: t.colors.panel,
-        window_fill: t.colors.panel,
-        extreme_bg_color: t.colors.canvas,
-        faint_bg_color: t.colors.background,
-        override_text_color: Some(t.colors.text),
-        hyperlink_color: t.colors.accent,
-        warn_fg_color: t.colors.warning,
-        error_fg_color: t.colors.error,
+        panel_fill: c.panel,
+        window_fill: c.surface,
+        extreme_bg_color: c.canvas,
+        faint_bg_color: c.background,
+        code_bg_color: c.surface,
+        override_text_color: Some(c.text),
+        hyperlink_color: c.accent,
+        warn_fg_color: c.warning,
+        error_fg_color: c.error,
+        window_corner_radius: egui::CornerRadius::same(t.sizes.corner_lg),
+        window_shadow: egui::Shadow {
+            offset: [0, 14],
+            blur: 38,
+            spread: 0,
+            color: c.scrim,
+        },
+        popup_shadow: egui::Shadow {
+            offset: [0, 8],
+            blur: 24,
+            spread: 0,
+            color: c.scrim,
+        },
+        window_stroke: egui::Stroke::new(t.sizes.stroke_thin, c.border),
+        widgets: egui::style::Widgets {
+            noninteractive: widgets(c.panel, c.border),
+            inactive: widgets(c.surface, c.border),
+            hovered: widgets(c.hover, c.focus),
+            active: widgets(c.selection, c.focus),
+            open: widgets(c.hover, c.border),
+        },
         selection: egui::style::Selection {
-            bg_fill: t.colors.selection,
-            stroke: egui::Stroke::new(t.sizes.stroke_thin, t.colors.focus),
+            bg_fill: c.selection,
+            stroke: egui::Stroke::new(t.sizes.stroke_thin, c.focus),
         },
         ..base
     };

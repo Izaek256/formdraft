@@ -118,3 +118,20 @@ Priority: Should | Target: R1
 ## 10. Open questions raised
 
 OQ-36 movable panels. OQ-37 actual size on screen. OQ-38 contrast targets and default theme. OQ-39 shortcut scheme. OQ-40 fonts and icon licences.
+
+## 11. Shell additions (feature/adobe-grade-egui-ui)
+
+The shell grew beyond the SK-01 regions to match the product structure in the FormDraft visual reference. Nothing here creates features that do not exist; later-release items appear disabled or report a toast that names the release.
+
+| Region | Content | Honesty rule |
+|---|---|---|
+| Title bar | Logo mark drawn in code, product name and tagline, crate version on the splash, project/session button, session status pill | The pill reads Needs input / Needs attention / Ready from real validation state. There are no project files, so no save indicator is shown |
+| Navigation rail | Home, Drafting, Measurements, Patterns, Grading, Material Preview, Exports, Project | Only Drafting exists; the rest toast `…arrives in a later release` and stay in Drafting |
+| Pattern-tool grid | Select, Point, Line, Curve, Arc, Dart, Notch, Text, Grainline, Rectangle, Circle, Measure | Only Select works (FR-025 is R2); other tools show the mode as `Name (R2 preview)` and the canvas keeps Select behaviour |
+| Document tab + view strip | One tab and one miniature card per drawable piece, scaled from real bounds aspect ratio | No multi-document workspace; the `+` and `+ Add View` controls are disabled |
+| Inspector tabs | Properties (piece name wired to the canvas label, method facts, live dimensions), Measurements (the real form), Style (empty state), Instructions (toile guidance) | Style has no controls until S14; no demo style values are drawn |
+| Dialogs | About, Method, Project session, Export readiness | Export lists real blockers (form errors, validation errors); the file-writing button is disabled until S14e |
+| Toasts | Tool, theme, unit, fit and validation confirmations | Only real events queue a toast; nothing invents progress |
+| Splash | Logo, product name, version from `CARGO_PKG_VERSION`, three genuine startup steps with a minimum display time | Steps are discrete work (limits, profile, canvas fit), never a fabricated percentage |
+
+The dark palette stays charcoal with a dark canvas because T-SK01-11 requires light text to keep 4.5:1 on every surface it is painted on, including the canvas. The light theme carries the paper-white canvas of the reference. New palette fields: `surface`, `hover`, `disabled`, `success`, `scrim`. New size tokens: rail, tools, inspector, title bar, tab, strip, control, thumbnail and splash dimensions.

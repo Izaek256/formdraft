@@ -14,7 +14,14 @@ pub mod theme;
 
 /// Start the native window. Returns an error instead of panicking.
 pub fn run() -> eframe::Result {
-    let options = eframe::NativeOptions::default();
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_title("FormDraft — Precision Pattern Engineering")
+            .with_app_id("formdraft")
+            .with_inner_size([1440.0, 900.0])
+            .with_min_inner_size([1100.0, 680.0]),
+        ..Default::default()
+    };
     eframe::run_native(
         "formdraft",
         options,

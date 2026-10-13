@@ -154,6 +154,22 @@ impl Canvas {
         }
     }
 
+    /// Set an exact zoom percentage of approximate actual size, about the
+    /// viewport centre. Out-of-range input is clamped, never ignored.
+    pub fn set_zoom_percent(&mut self, percent: f64) {
+        const MIN_PERCENT: f64 = 25.0;
+        const MAX_PERCENT: f64 = 400.0;
+        let clamped = percent.clamp(MIN_PERCENT, MAX_PERCENT);
+        if !clamped.is_finite() {
+            return;
+        }
+        let target = clamped / 100.0 * Viewport::actual_size_scale(NOMINAL_PPI);
+        let current = self.viewport.px_per_mm();
+        if current > 0.0 && target.is_finite() {
+            self.viewport.zoom_about(target / current, self.centre_px());
+        }
+    }
+
     fn centre_px(&self) -> [f64; 2] {
         let size = self.viewport.size_px();
         [size[0] / 2.0, size[1] / 2.0]
@@ -178,6 +194,7 @@ impl Canvas {
             | Action::ToggleRulers
             | Action::ToggleGrid
             | Action::HidePanels
+            | Action::OpenExport
             | Action::ShortcutList => {}
         }
     }
