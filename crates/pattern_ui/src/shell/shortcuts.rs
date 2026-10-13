@@ -39,6 +39,8 @@ pub enum Action {
     PanUp,
     /// Pan down.
     PanDown,
+    /// Open the export readiness dialog.
+    OpenExport,
 }
 
 /// When a shortcut is active.
@@ -106,6 +108,7 @@ pub const SHORTCUTS: &[Shortcut] = &[
     ),
     Shortcut::new(Action::FitToWindow, Key::Num0, true, false, Scope::Global),
     Shortcut::new(Action::ActualSize, Key::Num1, true, false, Scope::Global),
+    Shortcut::new(Action::OpenExport, Key::E, true, false, Scope::Global),
     Shortcut::new(Action::ToggleRulers, Key::R, true, false, Scope::Global),
     Shortcut::new(Action::ToggleGrid, Key::Quote, true, false, Scope::Global),
     Shortcut::new(Action::HidePanels, Key::H, true, true, Scope::Global),
@@ -190,5 +193,6 @@ pub fn action_label(action: Action) -> &'static str {
         Action::PanRight => "Pan right",
         Action::PanUp => "Pan up",
         Action::PanDown => "Pan down",
+        Action::OpenExport => "Export readiness",
     }
 }

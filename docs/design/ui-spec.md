@@ -118,3 +118,26 @@ Priority: Should | Target: R1
 ## 10. Open questions raised
 
 OQ-36 movable panels. OQ-37 actual size on screen. OQ-38 contrast targets and default theme. OQ-39 shortcut scheme. OQ-40 fonts and icon licences.
+
+## 11. Shell additions (feature/adobe-grade-egui-ui)
+
+The shell grew beyond the SK-01 regions to match the product structure in the FormDraft visual reference. Nothing here creates features that do not exist; later-release items appear disabled or report a toast that names the release.
+
+| Region | Content | Honesty rule |
+|---|---|---|
+| Title bar | Logo mark drawn in code, product name and tagline, crate version on the splash, project/session button, session status pill | The pill reads Needs input / Needs attention / Ready from real validation state. There are no project files, so no save indicator is shown |
+| Navigation rail | Home, Drafting, Measurements, Patterns, Grading, Material Preview, Exports, Project | Only Drafting exists; the rest toast `…arrives in a later release` and stay in Drafting |
+| Pattern-tool grid | Select, Point, Line, Curve, Arc, Dart, Notch, Text, Grainline, Rectangle, Circle, Measure | Only Select works (FR-025 is R2); other tools show the mode as `Name (R2 preview)` and the canvas keeps Select behaviour |
+| Pattern Pieces + Layers | Piece row with visibility and size when a shape exists; Layers toggles for the outline, grid and rulers | With no measurements the pieces section is an empty state with an `Enter measurements` button; no layer rows exist for roles that do not draw |
+| Document tab + view strip | One tab and one miniature card per drawable piece, scaled from real bounds aspect ratio | The strip collapses to one status line when there is no piece. The `+` and `+ Add View` controls are disabled |
+| Canvas empty state | Centred heading, guidance and an `Enter measurements` button that opens the Measurements tab; a hidden piece shows a note instead | The state exists only while nothing can draw; it never invents a shape |
+| Canvas annotations | Width and height dimension lines with unit-service labels outside the piece, piece name and net-block note in the centre | Labels format through `pattern_core::units`; the 80 px fit margin exists so the annotations are visible in the fitted view |
+| Control bar | Zoom out/in, Fit, 1:1, live grid pill, Snap, Show Grid, Show Rulers | Canvas tools are not repeated here (Tools menu and V/H/Z cover them); the zoom read-out lives in the status bar only |
+| Inspector tabs | Properties (piece name wired to the canvas label, method facts, live dimensions, empty state with an `Enter measurements` button), Measurements (the real form), Style (empty state), Instructions (toile guidance) | Style has no controls until S14; no demo style values are drawn; fact values wrap instead of clipping |
+| Dialogs | About, Method, Project session, Export readiness | Export lists real blockers (form errors, validation errors); the file-writing button is disabled until S14e |
+| Toasts | Tool, theme, unit, fit and validation confirmations | Only real events queue a toast; nothing invents progress |
+| Splash | Logo, product name, version from `CARGO_PKG_VERSION`, three genuine startup steps with a minimum display time | Steps are discrete work (limits, profile, canvas fit), never a fabricated percentage |
+
+Column widths follow the reference: rail 130, tools 286, inspector 392, fluid centre. The default window is 1340 x 680 so it fits a 1366 x 768 screen with the taskbar. It opens centred on the primary monitor on the first frame (`WorkspaceApp::center_window`), using the outer rect so the title bar and bottom edge stay clear of the taskbar. The first valid draft fits itself into the viewport; later edits keep the user's pan and zoom.
+
+The dark palette stays charcoal with a dark canvas because T-SK01-11 requires light text to keep 4.5:1 on every surface it is painted on, including the canvas. The light theme carries the paper-white canvas of the reference. New palette fields: `surface`, `hover`, `disabled`, `success`, `scrim`. New size tokens: rail, tools, inspector, title bar, tab, strip, control, thumbnail and splash dimensions.

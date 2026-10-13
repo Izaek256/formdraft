@@ -13,6 +13,10 @@ pub struct Colors {
     pub background: Color32,
     /// Panel background.
     pub panel: Color32,
+    /// Elevated surface (cards, wells, dialog bodies).
+    pub surface: Color32,
+    /// Hover surface.
+    pub hover: Color32,
     /// Canvas background.
     pub canvas: Color32,
     /// Grid line colour.
@@ -23,6 +27,8 @@ pub struct Colors {
     pub text: Color32,
     /// Secondary or disabled text.
     pub text_muted: Color32,
+    /// Disabled control text and icons.
+    pub disabled: Color32,
     /// Accent used for controls.
     pub accent: Color32,
     /// Focus ring colour.
@@ -35,6 +41,10 @@ pub struct Colors {
     pub warning: Color32,
     /// Error severity.
     pub error: Color32,
+    /// Success severity.
+    pub success: Color32,
+    /// Modal backdrop scrim.
+    pub scrim: Color32,
     /// Stitch-path role colour.
     pub stitch: Color32,
     /// Cut-path role colour.
@@ -80,8 +90,12 @@ pub struct Sizes {
     pub font_heading: f32,
     /// Corner radius for framed widgets.
     pub corner_radius: u8,
+    /// Corner radius for cards and dialogs.
+    pub corner_lg: u8,
     /// Icon square size in the tool strip.
     pub icon_size: f32,
+    /// Large icon square size (tool grid, toolbar).
+    pub icon_lg: f32,
     /// Length of a dash in a dashed stroke.
     pub dash_length: f32,
     /// Gap between dashes in a dashed stroke.
@@ -90,6 +104,24 @@ pub struct Sizes {
     pub ruler_tick_len: f32,
     /// Padding between a ruler tick and its label.
     pub ruler_label_pad: f32,
+    /// Width of the left navigation rail.
+    pub rail_width: f32,
+    /// Width of the contextual tools panel.
+    pub tools_width: f32,
+    /// Width of the right inspector column.
+    pub inspector_width: f32,
+    /// Height of the branded title bar.
+    pub titlebar_height: f32,
+    /// Height of a document tab row.
+    pub tab_height: f32,
+    /// Height of the bottom view strip.
+    pub strip_height: f32,
+    /// Standard control (button, field) height.
+    pub control_height: f32,
+    /// Preview square size in the bottom view strip.
+    pub thumb_size: f32,
+    /// Width of the splash card.
+    pub splash_width: f32,
 }
 
 /// Shared sizes for every palette.
@@ -109,11 +141,22 @@ pub const SIZES: Sizes = Sizes {
     font_body: 13.0,
     font_heading: 16.0,
     corner_radius: 3,
+    corner_lg: 6,
     icon_size: 20.0,
+    icon_lg: 22.0,
     dash_length: 6.0,
     dash_gap: 4.0,
     ruler_tick_len: 6.0,
     ruler_label_pad: 2.0,
+    rail_width: 130.0,
+    tools_width: 286.0,
+    inspector_width: 392.0,
+    titlebar_height: 46.0,
+    tab_height: 34.0,
+    strip_height: 118.0,
+    control_height: 28.0,
+    thumb_size: 64.0,
+    splash_width: 440.0,
 };
 
 /// A complete set of tokens for one theme.

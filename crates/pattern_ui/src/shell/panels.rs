@@ -1,9 +1,9 @@
-//! The right-hand panel column: visibility model for the working panels.
+//! The panel columns: visibility models for the working panels.
 //!
-//! The model is pure. `Ctrl+Shift+H` toggles the whole column; individual
-//! toggles are added later. Hiding a panel never touches any other model.
+//! The model is pure. `Ctrl+Shift+H` toggles every column; hiding a panel
+//! never touches any other model.
 
-/// Which right-hand panels are visible.
+/// Which panels are visible.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PanelsModel {
     /// The properties panel.
@@ -12,6 +12,8 @@ pub struct PanelsModel {
     pub pieces: bool,
     /// The warnings panel.
     pub warnings: bool,
+    /// The left column (rail and pattern tools).
+    pub left: bool,
 }
 
 impl Default for PanelsModel {
@@ -20,18 +22,24 @@ impl Default for PanelsModel {
             properties: true,
             pieces: true,
             warnings: true,
+            left: true,
         }
     }
 }
 
 impl PanelsModel {
-    /// True when every panel in the column is visible.
+    /// True when every panel is visible.
     pub fn all_visible(&self) -> bool {
-        self.properties && self.pieces && self.warnings
+        self.properties && self.pieces && self.warnings && self.left
     }
 
     /// True when at least one panel is visible.
     pub fn any_visible(&self) -> bool {
+        self.properties || self.pieces || self.warnings || self.left
+    }
+
+    /// True when at least one right-hand inspector panel is visible.
+    pub fn any_inspector_visible(&self) -> bool {
         self.properties || self.pieces || self.warnings
     }
 
@@ -41,5 +49,6 @@ impl PanelsModel {
         self.properties = show;
         self.pieces = show;
         self.warnings = show;
+        self.left = show;
     }
 }

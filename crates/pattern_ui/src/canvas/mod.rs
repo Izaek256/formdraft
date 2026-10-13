@@ -20,8 +20,9 @@ use pattern_core::units::Unit;
 use crate::shell::{Action, Tool};
 use crate::theme::Tokens;
 
-/// Pixels of margin left when fitting content.
-const FIT_MARGIN_PX: f64 = 24.0;
+/// Pixels of margin left when fitting content. Wide enough for the dimension
+/// annotations, which sit up to 20 mm outside the piece.
+const FIT_MARGIN_PX: f64 = 80.0;
 /// Distance the view pans per keyboard pan action, in points.
 const PAN_STEP_PX: f64 = 48.0;
 /// Minimum spacing between ruler labels, in points.
@@ -99,6 +100,9 @@ pub struct Canvas {
     pub content: Option<Content>,
     /// The current selection, when a piece is selected.
     pub selection: Option<Selection>,
+    /// Fit the content on the next frame (set when the first shape appears,
+    /// consumed by `show` once the viewport knows its size).
+    pub fit_pending: bool,
 }
 
 impl Canvas {
@@ -111,12 +115,15 @@ impl Canvas {
             show_grid: true,
             content: None,
             selection: None,
+            fit_pending: false,
         }
     }
 
     /// Set the drawable content. Keeps an existing selection when the piece is
-    /// unchanged, so a redraw does not drop the user's selection.
+    /// unchanged, so a redraw does not drop the user's selection. The first
+    /// shape requests a fit so the user sees it without reaching for zoom.
     pub fn set_content(&mut self, bounds: Bounds, label: String, role: roles::Role) {
+        let had_content = self.content.is_some();
         let unchanged = self
             .content
             .as_ref()
@@ -130,6 +137,9 @@ impl Canvas {
         });
         if !unchanged {
             self.selection = None;
+        }
+        if !had_content {
+            self.fit_pending = true;
         }
     }
 
@@ -151,6 +161,22 @@ impl Canvas {
         if let Some(content) = &self.content {
             self.viewport
                 .fit(content.bounds.min_mm, content.bounds.max_mm, FIT_MARGIN_PX);
+        }
+    }
+
+    /// Set an exact zoom percentage of approximate actual size, about the
+    /// viewport centre. Out-of-range input is clamped, never ignored.
+    pub fn set_zoom_percent(&mut self, percent: f64) {
+        const MIN_PERCENT: f64 = 25.0;
+        const MAX_PERCENT: f64 = 400.0;
+        let clamped = percent.clamp(MIN_PERCENT, MAX_PERCENT);
+        if !clamped.is_finite() {
+            return;
+        }
+        let target = clamped / 100.0 * Viewport::actual_size_scale(NOMINAL_PPI);
+        let current = self.viewport.px_per_mm();
+        if current > 0.0 && target.is_finite() {
+            self.viewport.zoom_about(target / current, self.centre_px());
         }
     }
 
@@ -178,6 +204,7 @@ impl Canvas {
             | Action::ToggleRulers
             | Action::ToggleGrid
             | Action::HidePanels
+            | Action::OpenExport
             | Action::ShortcutList => {}
         }
     }
@@ -200,6 +227,10 @@ impl Canvas {
         }
         self.viewport
             .set_size([f64::from(inner.width()), f64::from(inner.height())]);
+        if self.fit_pending {
+            self.fit_pending = false;
+            self.fit();
+        }
 
         let before = ScreenMap {
             viewport: self.viewport,
@@ -236,10 +267,66 @@ impl Canvas {
 
         self.draw_content(&painter, &map, tokens);
 
+        let mut open_measurements = false;
+        match &self.content {
+            None => open_measurements = self.draw_empty_state(ui, inner, tokens),
+            Some(content) if !content.visible => self.draw_hidden_note(ui, tokens),
+            Some(_) => {}
+        }
+
         CanvasResponse {
             focused: response.has_focus(),
             cursor_world_mm: cursor_world,
+            open_measurements,
         }
+    }
+
+    /// The centred empty state: heading, guidance and a real button that asks
+    /// the application to open the Measurements tab. Returns whether the
+    /// button was clicked.
+    fn draw_empty_state(&self, ui: &mut egui::Ui, inner: Rect, tokens: &Tokens) -> bool {
+        let mut open_measurements = false;
+        let width_cap = inner.width() * 0.6;
+        egui::Area::new(egui::Id::new("canvas_empty_state"))
+            .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
+            .show(ui.ctx(), |ui| {
+                ui.set_width(width_cap);
+                ui.vertical_centered(|ui| {
+                    ui.label(
+                        egui::RichText::new("No measurements yet")
+                            .size(tokens.sizes.font_heading)
+                            .strong()
+                            .color(tokens.colors.text),
+                    );
+                    ui.add_space(tokens.sizes.spacing_m);
+                    ui.label(
+                        egui::RichText::new(
+                            "Enter waist, hips, waist to hip and skirt length to draft \
+                             the placeholder block.",
+                        )
+                        .size(tokens.sizes.font_small)
+                        .color(tokens.colors.text_muted),
+                    );
+                    ui.add_space(tokens.sizes.spacing_l);
+                    if ui.add(egui::Button::new("Enter measurements")).clicked() {
+                        open_measurements = true;
+                    }
+                });
+            });
+        open_measurements
+    }
+
+    /// The note shown when the piece exists but is hidden.
+    fn draw_hidden_note(&self, ui: &mut egui::Ui, tokens: &Tokens) {
+        egui::Area::new(egui::Id::new("canvas_hidden_note"))
+            .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
+            .show(ui.ctx(), |ui| {
+                ui.label(
+                    egui::RichText::new("Piece hidden — show it again in Pattern Pieces.")
+                        .size(tokens.sizes.font_small)
+                        .color(tokens.colors.text_muted),
+                );
+            });
     }
 
     fn draw_content(&self, painter: &egui::Painter, map: &ScreenMap, tokens: &Tokens) {
@@ -257,6 +344,77 @@ impl Canvas {
             [b.min_mm[0], b.max_mm[1]],
         ];
         render_cpu::draw_polyline(painter, map, &outline, true, content.role, tokens);
+
+        // Dimension annotations: width above, height on left, labels in centre.
+        let label_font = egui::FontId::proportional(tokens.sizes.font_small);
+        let dim_stroke = egui::Stroke::new(tokens.sizes.stroke_thin, tokens.colors.accent);
+        let size = b.size_mm();
+        let unit = self.display_unit;
+        let width_label = rulers::tick_label(unit, size[0]);
+        let height_label = rulers::tick_label(unit, size[1]);
+
+        // Width dimension: horizontal line above the top edge.
+        let top_y = b.min_mm[1];
+        let dim_offset_mm = 20.0;
+        let dim_y = top_y - dim_offset_mm;
+        let a = map.to_pos(b.min_mm[0], dim_y);
+        let c = map.to_pos(b.max_mm[0], dim_y);
+        painter.line_segment([a, c], dim_stroke);
+        // Ticks at ends.
+        painter.line_segment(
+            [egui::pos2(a.x, a.y - 4.0), egui::pos2(a.x, a.y + 4.0)],
+            dim_stroke,
+        );
+        painter.line_segment(
+            [egui::pos2(c.x, c.y - 4.0), egui::pos2(c.x, c.y + 4.0)],
+            dim_stroke,
+        );
+        painter.text(
+            egui::pos2((a.x + c.x) / 2.0, a.y - 8.0),
+            egui::Align2::CENTER_BOTTOM,
+            width_label,
+            label_font.clone(),
+            tokens.colors.accent,
+        );
+
+        // Height dimension: vertical line on the left edge.
+        let left_x = b.min_mm[0];
+        let dim_x = left_x - dim_offset_mm;
+        let d = map.to_pos(dim_x, b.min_mm[1]);
+        let e = map.to_pos(dim_x, b.max_mm[1]);
+        painter.line_segment([d, e], dim_stroke);
+        painter.line_segment(
+            [egui::pos2(d.x - 4.0, d.y), egui::pos2(d.x + 4.0, d.y)],
+            dim_stroke,
+        );
+        painter.line_segment(
+            [egui::pos2(e.x - 4.0, e.y), egui::pos2(e.x + 4.0, e.y)],
+            dim_stroke,
+        );
+        painter.text(
+            egui::pos2(d.x - 8.0, (d.y + e.y) / 2.0),
+            egui::Align2::RIGHT_CENTER,
+            height_label,
+            label_font.clone(),
+            tokens.colors.accent,
+        );
+
+        // Centre label: piece name + subtitle.
+        let centre = map.to_pos(b.center_mm()[0], b.center_mm()[1]);
+        painter.text(
+            centre,
+            egui::Align2::CENTER_CENTER,
+            &content.label,
+            egui::FontId::proportional(tokens.sizes.font_body),
+            tokens.colors.text,
+        );
+        painter.text(
+            egui::pos2(centre.x, centre.y + tokens.sizes.font_body + 4.0),
+            egui::Align2::CENTER_TOP,
+            "Net block (no seam allowance)",
+            label_font,
+            tokens.colors.text_muted,
+        );
 
         if let Some(selection) = &self.selection {
             let sel = selection.bounds;
@@ -280,6 +438,8 @@ pub struct CanvasResponse {
     pub focused: bool,
     /// The cursor position in millimetres, when hovering.
     pub cursor_world_mm: Option<[f64; 2]>,
+    /// Whether the empty-state button asked for the Measurements tab.
+    pub open_measurements: bool,
 }
 
 /// Draw the top and left rulers.

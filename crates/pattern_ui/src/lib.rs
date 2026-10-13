@@ -14,7 +14,17 @@ pub mod theme;
 
 /// Start the native window. Returns an error instead of panicking.
 pub fn run() -> eframe::Result {
-    let options = eframe::NativeOptions::default();
+    // Window placement is handled once on the first frame in `WorkspaceApp`
+    // (`center_window`): eframe's `centered` centres by inner size, which
+    // pushes the title bar and bottom edge under the taskbar on short screens.
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_title("FormDraft — Precision Pattern Engineering")
+            .with_app_id("formdraft")
+            .with_inner_size([1340.0, 680.0])
+            .with_min_inner_size([1100.0, 680.0]),
+        ..Default::default()
+    };
     eframe::run_native(
         "formdraft",
         options,
